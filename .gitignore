@@ -1,0 +1,10 @@
+node_modules/
+out/
+dist/
+
+# Fetched by `npm run fonts`, not committed.
+src/renderer/public/fonts/*.woff2
+
+*.log
+.DS_Store
+/dist-web

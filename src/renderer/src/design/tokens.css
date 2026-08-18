@@ -1,0 +1,100 @@
+/*
+ * Fleek design tokens — the single source of truth.
+ * Nothing in the app may use a raw hex value, a font stack, or a spacing
+ * value that is not defined here. If a new one is needed, add it here first.
+ *
+ * The idea: green-black glass, lit by a warm vanity bulb.
+ */
+
+:root {
+  /* ---- Color -------------------------------------------------------- */
+  --glass-000: #0a0d0c; /* app background, deepest */
+  --glass-100: #121716; /* raised surfaces: tray, sheets */
+  --glass-200: #1b2220; /* borders, dividers, inactive fills */
+  --glass-400: #46514e; /* disabled text, hairlines */
+  --glass-600: #7e8b87; /* secondary text */
+  --glass-900: #e6ece9; /* primary text */
+
+  --bulb-500: #e8a33d; /* the only accent */
+  --bulb-100: #3a2a12; /* accent at 12% over glass-000, for fills */
+
+  --alarm-500: #d96b5a; /* cap reached, connection failed — nothing else */
+
+  /* ---- Type --------------------------------------------------------- */
+  --font-display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
+  --font-body: 'Inter Tight', 'Segoe UI Variable Text', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', 'Cascadia Mono', 'Consolas', ui-monospace, monospace;
+
+  /* ---- Space -------------------------------------------------------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+
+  /* ---- Radius ------------------------------------------------------- */
+  --radius: 4px;
+  --radius-sheet: 8px;
+  --radius-full: 999px;
+
+  /* ---- Motion ------------------------------------------------------- */
+  --ease-wipe: cubic-bezier(0.22, 1, 0.36, 1);
+  --dur-press: 90ms;
+  --dur-quick: 160ms;
+  --dur-select: 200ms;
+  --dur-hud: 240ms;
+  --dur-sheet: 280ms;
+  --dur-capture: 400ms;
+  --dur-wipe: 480ms;
+  --dur-cap-warn: 800ms;
+}
+
+/* The display face is used in exactly three places: the wordmark, the idle
+   mirror line, and empty states. Its variable axes are set once, here. */
+.font-display,
+[data-face='display'] {
+  font-family: var(--font-display);
+  font-variation-settings: 'opsz' 144, 'wght' 300, 'SOFT' 50, 'WONK' 1;
+  font-weight: 300;
+}
+
+@font-face {
+  font-family: 'Fraunces';
+  src: url('/fonts/Fraunces.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Inter Tight';
+  src: url('/fonts/InterTight.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('/fonts/GeistMono.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+/* The wipe band. Its colours are glass-900 and bulb-500 at low alpha; they
+   live here rather than in the component so tokens.css stays the only file
+   that names a colour. */
+:root {
+  --wipe-band: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(232, 163, 61, 0.05) 35%,
+    rgba(230, 236, 233, 0.16) 50%,
+    rgba(232, 163, 61, 0.05) 65%,
+    transparent 100%
+  );
+  --scrim: rgba(10, 13, 12, 0.6);
+  --flash: rgba(230, 236, 233, 0.24);
+}
