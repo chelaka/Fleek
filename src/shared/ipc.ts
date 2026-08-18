@@ -1,4 +1,11 @@
-import type { AppState, GarmentInput, GarmentWithThumb, Settings } from './types'
+import type {
+  AppState,
+  GarmentInput,
+  GarmentWithThumb,
+  ModelPhotoInput,
+  ModelPhotoWithThumb,
+  Settings
+} from './types'
 
 /**
  * The complete IPC surface. Every channel is listed here once, and both the
@@ -21,6 +28,11 @@ export interface IpcContract {
   'library:add': (input: GarmentInput) => Promise<GarmentWithThumb>
   'library:remove': (id: string) => Promise<void>
 
+  /** Photos of the user, which only the still path needs. */
+  'models:list': () => Promise<ModelPhotoWithThumb[]>
+  'models:add': (input: ModelPhotoInput) => Promise<ModelPhotoWithThumb>
+  'models:remove': (id: string) => Promise<void>
+
   'capture:save': (pngBase64: string) => Promise<string>
   'capture:reveal': (filePath: string) => Promise<void>
 
@@ -28,8 +40,15 @@ export interface IpcContract {
   'shell:openExternal': (url: string) => Promise<void>
   'dialog:pickCaptureDir': () => Promise<string | null>
 
-  /** Renderer tells main a billing session opened or closed, for the log. */
-  'session:log': (event: { kind: 'live-enter' | 'live-exit'; seconds?: number; cost?: number }) => Promise<void>
+  /**
+   * Renderer tells main that money moved, for the log. Live sessions bracket
+   * themselves with enter/exit; a still is a single billed event.
+   */
+  'session:log': (event: {
+    kind: 'live-enter' | 'live-exit' | 'still'
+    seconds?: number
+    cost?: number
+  }) => Promise<void>
 }
 
 export type IpcChannel = keyof IpcContract

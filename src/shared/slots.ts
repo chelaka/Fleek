@@ -9,6 +9,13 @@
 
 export type SlotId = 'headwear' | 'eyewear' | 'top' | 'outerwear' | 'bag' | 'bottoms' | 'footwear'
 
+/**
+ * The garment categories FASHN accepts. It is a try-on model, not a general
+ * image editor: it dresses a torso and legs and knows nothing about hats,
+ * glasses, bags or shoes.
+ */
+export type FashnCategory = 'tops' | 'bottoms' | 'one-pieces'
+
 export interface SlotDef {
   id: SlotId
   /** Tray and picker label. */
@@ -24,14 +31,28 @@ export interface SlotDef {
   visibility: 'full' | 'partial' | 'none'
   /** Shown under the slot when visibility is not full. */
   caveat?: string
+  /**
+   * Which FASHN category this slot is generated as, or absent if FASHN
+   * cannot wear it at all. The live model has no such limit, which is why
+   * this lives beside `visibility` rather than replacing it: each mode is
+   * blind to different things.
+   */
+  category?: FashnCategory
 }
 
 /** Ordered head-down, which is also the order they appear in the tray. */
 export const SLOTS: readonly SlotDef[] = [
   { id: 'headwear', label: 'Cap', noun: 'hat or cap', mode: 'add', visibility: 'full' },
   { id: 'eyewear', label: 'Glasses', noun: 'glasses', mode: 'add', visibility: 'full' },
-  { id: 'top', label: 'Top', noun: 'top', mode: 'replace', visibility: 'full' },
-  { id: 'outerwear', label: 'Jacket', noun: 'jacket or coat', mode: 'add', visibility: 'full' },
+  { id: 'top', label: 'Top', noun: 'top', mode: 'replace', visibility: 'full', category: 'tops' },
+  {
+    id: 'outerwear',
+    label: 'Jacket',
+    noun: 'jacket or coat',
+    mode: 'add',
+    visibility: 'full',
+    category: 'tops'
+  },
   {
     id: 'bag',
     label: 'Bag',
@@ -46,7 +67,8 @@ export const SLOTS: readonly SlotDef[] = [
     noun: 'trousers or skirt',
     mode: 'replace',
     visibility: 'none',
-    caveat: 'A chest-up webcam cannot see this. Step back or angle the camera down first.'
+    caveat: 'A chest-up webcam cannot see this. Step back or angle the camera down first.',
+    category: 'bottoms'
   },
   {
     id: 'footwear',

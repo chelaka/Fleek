@@ -29,6 +29,10 @@ export function createElectronPlatform(): FleekPlatform {
     addGarment: bridge.addGarment,
     removeGarment: bridge.removeGarment,
 
+    listModelPhotos: bridge.listModelPhotos,
+    addModelPhoto: bridge.addModelPhoto,
+    removeModelPhoto: bridge.removeModelPhoto,
+
     saveCapture: bridge.saveCapture,
     revealCapture: bridge.revealCapture,
 

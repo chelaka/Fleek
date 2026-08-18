@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron'
 import { join } from 'node:path'
 import { appendFileSync } from 'node:fs'
@@ -9,11 +10,13 @@ import {
   WINDOW_SYMBOL,
   type AppState,
   type GarmentInput,
+  type ModelPhotoInput,
   type Settings
 } from '@shared/types'
 import { clearApiKey, getApiKey, hasApiKey, setApiKey } from './credentials'
 import { defaultCaptureDir, getSettings, resetSettings, updateSettings } from './settings'
 import { addGarment, clearLibrary, listGarments, removeGarment } from './library'
+import { addModelPhoto, clearModelPhotos, listModelPhotos, removeModelPhoto } from './models'
 import { saveCapture } from './capture'
 import type { IpcContract } from '@shared/ipc'
 
@@ -146,6 +149,7 @@ const handlers: {
   'app:reset': () => {
     clearApiKey()
     clearLibrary()
+    clearModelPhotos()
     resetSettings()
   },
 
@@ -160,6 +164,10 @@ const handlers: {
   'library:list': () => listGarments(),
   'library:add': (input: GarmentInput) => addGarment(input),
   'library:remove': (id: string) => removeGarment(id),
+
+  'models:list': () => listModelPhotos(),
+  'models:add': (input: ModelPhotoInput) => addModelPhoto(input),
+  'models:remove': (id: string) => removeModelPhoto(id),
 
   'capture:save': (pngBase64: string) => saveCapture(pngBase64),
   'capture:reveal': (filePath: string) => {

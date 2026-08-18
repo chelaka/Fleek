@@ -48,8 +48,14 @@ export function Consent(): JSX.Element {
             before you continue.
           </p>
           <p>
-            Sessions cost $0.02 per second of live video. Fleek shows a running total and stops
-            itself at your time limit.
+            Photo mode is the other half: it dresses a photo of you rather than the live feed.
+            Photos you add are kept on this machine and sent to fal each time you generate. You
+            can remove them at any time.
+          </p>
+          <p>
+            Live video costs $0.02 per second and Fleek shows a running total and stops itself at
+            your time limit. A generated image costs $0.075 per garment, and the price is on the
+            button before you press it.
           </p>
         </div>
 
@@ -60,7 +66,9 @@ export function Consent(): JSX.Element {
             onChange={(e) => setChecked(e.currentTarget.checked)}
             className="mt-1 h-4 w-4 accent-bulb-500"
           />
-          <span>I understand my camera feed is sent to a third-party server.</span>
+          <span>
+            I understand my camera feed and any photos I add are sent to a third-party server.
+          </span>
         </label>
 
         <div>

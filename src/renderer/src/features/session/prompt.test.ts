@@ -5,6 +5,8 @@ describe('a single garment', () => {
   it('reads exactly like the v1 prompt did, with no panel talk', () => {
     expect(buildPrompt([{ slot: 'top' }])).toBe(
       'Substitute the current top with the top in the reference image, matching color, material, and fit. ' +
+        'The reference may show the item alone, laid flat, on a hanger, or worn by someone else -- read its ' +
+        'color, material, cut, and construction from whatever is shown. ' +
         'Keep everything else about the person unchanged.'
     )
   })

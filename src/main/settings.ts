@@ -30,7 +30,8 @@ function normalise(raw: Partial<Settings>): Settings {
     ),
     captureDir: typeof raw.captureDir === 'string' && raw.captureDir ? raw.captureDir : defaultCaptureDir(),
     promptOverride: typeof raw.promptOverride === 'string' ? raw.promptOverride : '',
-    consentAcceptedAt: typeof raw.consentAcceptedAt === 'string' ? raw.consentAcceptedAt : ''
+    consentAcceptedAt: typeof raw.consentAcceptedAt === 'string' ? raw.consentAcceptedAt : '',
+    modelPhotoId: typeof raw.modelPhotoId === 'string' ? raw.modelPhotoId : ''
   }
 }
 

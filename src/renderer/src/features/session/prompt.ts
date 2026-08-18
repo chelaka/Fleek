@@ -88,5 +88,10 @@ export function buildPrompt(entries: readonly PromptEntry[], override = ''): str
     ? opening + body.charAt(0).toUpperCase() + body.slice(1)
     : body.charAt(0).toUpperCase() + body.slice(1)
 
-  return sentence + ', matching color, material, and fit. Keep everything else about the person unchanged.'
+  return (
+    sentence +
+    ', matching color, material, and fit. The reference may show the item alone, laid flat, on a hanger, ' +
+    'or worn by someone else -- read its color, material, cut, and construction from whatever is shown. ' +
+    'Keep everything else about the person unchanged.'
+  )
 }

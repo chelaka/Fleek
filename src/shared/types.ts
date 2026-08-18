@@ -24,6 +24,44 @@ export interface GarmentWithThumb extends Garment {
   thumbDataUrl: string
 }
 
+/**
+ * A photo of the user, kept so the still path has someone to dress.
+ *
+ * The live mirror never needs one -- the webcam feed is the person. FASHN
+ * does, which is the one genuinely new thing photo mode introduces: a stored
+ * likeness rather than a stream that ends when the session does.
+ */
+export interface ModelPhoto {
+  id: string
+  name: string
+  createdAt: number
+  /** Absolute path of the original image on disk. Electron only. */
+  imagePath?: string
+  /** Absolute path of the 128px thumbnail on disk. Electron only. */
+  thumbPath?: string
+  /** URL returned by fal.storage.upload() — what the model actually reads. */
+  remoteUrl: string
+  width: number
+  height: number
+}
+
+export interface ModelPhotoWithThumb extends ModelPhoto {
+  thumbDataUrl: string
+}
+
+export interface ModelPhotoInput {
+  name: string
+  /** Base64 (no data: prefix) of the original image. */
+  imageBase64: string
+  /** File extension without the dot: jpg | png | webp */
+  imageExt: string
+  /** Base64 PNG of the 128px thumbnail. */
+  thumbBase64: string
+  remoteUrl: string
+  width: number
+  height: number
+}
+
 export interface Settings {
   /** deviceId from enumerateDevices(); empty means "let the OS pick". */
   cameraDeviceId: string
@@ -35,6 +73,8 @@ export interface Settings {
   promptOverride: string
   /** ISO timestamp, or empty if consent has not been given. */
   consentAcceptedAt: string
+  /** Which stored photo the still path dresses. Empty means none picked yet. */
+  modelPhotoId: string
 }
 
 export interface AppState {
@@ -65,7 +105,27 @@ export const DEFAULT_CAP_SECONDS = 180
 /** $0.02 per second of live video. The number the whole design bends around. */
 export const COST_PER_SECOND = 0.02
 
+/**
+ * $0.075 per generated still, per garment. The still path exists because of
+ * the ratio between this number and the one above: browsing a dozen garments
+ * live costs several dollars, and browsing them as stills costs under one.
+ */
+export const COST_PER_IMAGE = 0.075
+
 export const FAL_MODEL_ID = 'decart/lucy2-vton/realtime'
+
+/** The still path. Takes one person and one garment, and returns an image. */
+export const FASHN_MODEL_ID = 'fal-ai/fashn/tryon/v1.6'
+
+/**
+ * Enough photos to cover the poses worth having -- straight on, three
+ * quarter, full length -- and few enough that picking one stays a glance
+ * rather than a search.
+ */
+export const MAX_MODEL_PHOTOS = 6
+
+/** Which mirror the primary action drives. */
+export type FitMode = 'live' | 'still'
 
 export const DEFAULT_PROMPT =
   'Substitute the current top with the outfit from the reference image, matching its color, material, and fit.'
@@ -75,7 +135,8 @@ export const DEFAULT_SETTINGS: Settings = {
   capSeconds: DEFAULT_CAP_SECONDS,
   captureDir: '',
   promptOverride: '',
-  consentAcceptedAt: ''
+  consentAcceptedAt: '',
+  modelPhotoId: ''
 }
 
 /**

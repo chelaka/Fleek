@@ -8,3 +8,6 @@ src/renderer/public/fonts/*.woff2
 *.log
 .DS_Store
 /dist-web
+
+# Local fal key for dev, read via FAL_KEY. Never committed.
+.env

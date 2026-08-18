@@ -6,6 +6,8 @@ Fleek turns your webcam into a fitting-room mirror. Give it a photo of a garment
 
 The transformation is done by **Decart Lucy 2.1 VTON** via **fal.ai**, streamed over WebRTC. It is diffusion, not an AR overlay: there is no 3D mesh and no warping, so you get real drape, real shadow, and real occlusion when you cross your arms.
 
+There is a second, much cheaper way to look. **Photo mode** dresses a stored photo of you with **FASHN v1.6** and hands back a still, for a fixed price per garment and no running clock. The mirror is for confirming one garment; photo mode is for getting down to one.
+
 Windows only. Single user, own machine, own webcam.
 
 ---
@@ -21,7 +23,9 @@ Fleek's whole design bends around that number:
 - Every session has a hard cap (default 3 minutes, configurable 60–600s). At the cap the session closes itself and tells you what it cost.
 - Billing starts at the model's first generated frame and stops the instant the peer connection closes.
 
-Uploading garment images and testing your API key are not billed. Only live video is.
+Uploading garment images and testing your API key are not billed. Only generation is.
+
+**Photo mode is billed differently, and that is the point.** A still costs $0.075 per garment worn, charged once when it is generated, with the price printed on the button before you press it. Browsing a dozen garments as stills costs under a dollar; browsing them live costs several. Wear three garments at once and a still costs $0.225, because FASHN dresses one garment at a time and Fleek runs it once per garment.
 
 ## Setup
 
@@ -47,6 +51,21 @@ On first run you'll see a consent screen (non-skippable), then a setup screen fo
 6. **Stop fitting**, or let the cap stop it for you.
 
 Photos of the garment on a person work noticeably better than flat-lays.
+
+### Photo mode
+
+Switch **Mirror / Photo** next to the primary button. The tray, the slots and the selection all behave the same; only what happens when you press the button changes.
+
+1. Open **Photos of you** and add up to six photos of yourself, by the same four routes garments use. Full length against a plain wall generates best.
+2. Pick which photo to generate onto. The choice persists between runs.
+3. **Generate**. The button carries the price. Garments are applied innermost first, so a jacket goes on after the shirt.
+4. **Save this image** writes the PNG to the same place captures go.
+
+Photos of you are stored separately from the garment library — their own folder on desktop, their own object store in the browser — so the two can be cleared independently.
+
+**A still cannot wear everything the mirror can.** FASHN knows tops, bottoms and one-pieces; it has no idea what a cap, a pair of glasses, a bag or a shoe is. Those slots are dropped from the run and named on screen before you pay, rather than being sent anyway and billed for a result that ignores them.
+
+**The still is not a preview of the mirror.** They are different models, so drape, lighting and fit will differ. Photo mode is for narrowing the field, not for predicting what the mirror will show.
 
 ## Slots
 
@@ -137,7 +156,10 @@ src/
     features/
       camera/     Device enumeration, getUserMedia, one stream at a time
       session/    The state machine, the fal connection, the meter, the wipe
+      generate/   The still path: the FASHN call, the plan, what it can wear
       garments/   Intake, library grid, active selection
+      models/     Photos of the user, which only the still path needs
+      intake/     The four ways an image gets in, shared by both libraries
       capture/    Stills from the output stream
     ui/           Button, Field, Sheet, Toast, Meter, StatusDot
     design/       tokens.css — the only file that names a colour
@@ -151,7 +173,7 @@ src/
 
 ### Swapping providers
 
-Every line of code that knows fal exists lives in `features/session/connect.ts` and `features/session/upload.ts`. Replacing the provider means rewriting those two files and nothing else.
+Every line of code that knows fal exists lives in `features/session/connect.ts`, `features/session/upload.ts` and `features/generate/fashn.ts`. Replacing a provider means rewriting one of those and nothing else — the live path and the still path share no provider code, deliberately, because a WebRTC stream billed by the second and a request billed by the image have nothing useful in common.
 
 ## Your API key
 

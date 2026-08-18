@@ -8,9 +8,12 @@ import {
   type Garment,
   type GarmentInput,
   type GarmentWithThumb,
+  type ModelPhoto,
+  type ModelPhotoInput,
+  type ModelPhotoWithThumb,
   type Settings
 } from '@shared/types'
-import { idbClear, idbDelete, idbGetAll, idbPut } from './idb'
+import { GARMENTS, MODELS, idbClear, idbDelete, idbGetAll, idbPut } from './idb'
 import type { FleekPlatform } from './types'
 
 /**
@@ -33,6 +36,10 @@ interface StoredGarment extends Garment {
   thumbDataUrl: string
 }
 
+interface StoredPhoto extends ModelPhoto {
+  thumbDataUrl: string
+}
+
 function readSettings(): Settings {
   let raw: Partial<Settings> = {}
   try {
@@ -51,7 +58,8 @@ function readSettings(): Settings {
     capSeconds,
     captureDir: CAPTURE_LOCATION,
     promptOverride: typeof raw.promptOverride === 'string' ? raw.promptOverride : '',
-    consentAcceptedAt: typeof raw.consentAcceptedAt === 'string' ? raw.consentAcceptedAt : ''
+    consentAcceptedAt: typeof raw.consentAcceptedAt === 'string' ? raw.consentAcceptedAt : '',
+    modelPhotoId: typeof raw.modelPhotoId === 'string' ? raw.modelPhotoId : ''
   }
 }
 
@@ -90,7 +98,8 @@ export function createWebPlatform(): FleekPlatform {
     async reset(): Promise<void> {
       localStorage.removeItem(KEY_SETTINGS)
       localStorage.removeItem(KEY_API)
-      await idbClear()
+      await idbClear(GARMENTS)
+      await idbClear(MODELS)
     },
 
     async acceptConsent(): Promise<Settings> {
@@ -116,7 +125,7 @@ export function createWebPlatform(): FleekPlatform {
     },
 
     async listGarments(): Promise<GarmentWithThumb[]> {
-      const all = await idbGetAll<StoredGarment>()
+      const all = await idbGetAll<StoredGarment>(GARMENTS)
       return all
         .map((g) => (isSlotId(g.slot) ? g : { ...g, slot: DEFAULT_SLOT }))
         .sort((a, b) => b.createdAt - a.createdAt)
@@ -135,12 +144,37 @@ export function createWebPlatform(): FleekPlatform {
       }
       // The original is not kept: fal already holds it at `remoteUrl`, which
       // is the copy the model actually reads and the composite fetches back.
-      await idbPut(garment)
+      await idbPut(GARMENTS, garment)
       return garment
     },
 
     async removeGarment(id: string): Promise<void> {
-      await idbDelete(id)
+      await idbDelete(GARMENTS, id)
+    },
+
+    async listModelPhotos(): Promise<ModelPhotoWithThumb[]> {
+      const all = await idbGetAll<StoredPhoto>(MODELS)
+      return all.sort((a, b) => b.createdAt - a.createdAt)
+    },
+
+    async addModelPhoto(input: ModelPhotoInput): Promise<ModelPhotoWithThumb> {
+      const photo: StoredPhoto = {
+        id: crypto.randomUUID(),
+        name: input.name.trim() || 'Photo',
+        createdAt: Date.now(),
+        remoteUrl: input.remoteUrl,
+        width: input.width,
+        height: input.height,
+        thumbDataUrl: 'data:image/png;base64,' + input.thumbBase64
+      }
+      // As with garments, the original is not kept here: fal already holds it
+      // at `remoteUrl`, which is the copy the model reads.
+      await idbPut(MODELS, photo)
+      return photo
+    },
+
+    async removeModelPhoto(id: string): Promise<void> {
+      await idbDelete(MODELS, id)
     },
 
     async saveCapture(pngBase64: string): Promise<string> {

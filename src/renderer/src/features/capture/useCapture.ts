@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react'
 import { platform } from '@/platform'
-import { frameFromVideo } from '@/lib/image'
+import { blobToBase64, frameFromVideo } from '@/lib/image'
 import { useToast } from '@/ui/Toast'
 
 export interface FlyingThumb {
@@ -16,6 +16,8 @@ export interface UseCaptureResult {
   flying: FlyingThumb | null
   clearFlying: () => void
   capture: (video: HTMLVideoElement | null) => Promise<void>
+  /** The same shutter, for a generated still that already exists as a URL. */
+  save: (url: string | null) => Promise<void>
 }
 
 /** Stills only. Fleek never records video. */
@@ -49,7 +51,37 @@ export function useCapture(): UseCaptureResult {
     [toast]
   )
 
+  /**
+   * A generated still is already an image on fal's storage, so this fetches
+   * it back rather than reading a video frame. Everything after that -- the
+   * flash, the arc to the corner, the saved file -- is identical.
+   */
+  const save = useCallback(
+    async (url: string | null): Promise<void> => {
+      if (!url || busy.current) return
+      busy.current = true
+      try {
+        const response = await fetch(url)
+        if (!response.ok) throw new Error('That image could not be fetched back from fal.')
+        const base64 = await blobToBase64(await response.blob())
+
+        setFlashing(true)
+        window.setTimeout(() => setFlashing(false), 120)
+
+        const filePath = await platform.saveCapture(base64)
+        setFlying({ id: Date.now(), dataUrl: url, filePath })
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'The image could not be saved. Try again.'
+        toast.say(message, 'alarm')
+      } finally {
+        busy.current = false
+      }
+    },
+    [toast]
+  )
+
   const clearFlying = useCallback(() => setFlying(null), [])
 
-  return { flashing, flying, clearFlying, capture }
+  return { flashing, flying, clearFlying, capture, save }
 }

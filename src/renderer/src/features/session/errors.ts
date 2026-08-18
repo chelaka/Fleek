@@ -63,7 +63,10 @@ function extract(error: unknown): Extracted {
 /**
  * @param context what the user was doing, used only in the fallback sentence.
  */
-export function describeFalError(error: unknown, context: 'check' | 'session' | 'upload'): string {
+export function describeFalError(
+  error: unknown,
+  context: 'check' | 'session' | 'upload' | 'still'
+): string {
   const { status, raw } = extract(error)
 
   if (status === 401 || status === 403 || /\b401\b|\b403\b|unauthor|forbidden|invalid.*(key|token)|credential/i.test(raw)) {
@@ -88,9 +91,11 @@ export function describeFalError(error: unknown, context: 'check' | 'session' | 
   const lead =
     context === 'session'
       ? 'The session could not start.'
-      : context === 'upload'
-        ? 'That garment could not be uploaded.'
-        : 'The check failed.'
+      : context === 'still'
+        ? 'The image could not be generated.'
+        : context === 'upload'
+          ? 'That garment could not be uploaded.'
+          : 'The check failed.'
 
   return lead + (status ? ' fal returned ' + status + '.' : '') + (raw ? ' ' + raw : '')
 }

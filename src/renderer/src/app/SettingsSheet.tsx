@@ -142,8 +142,8 @@ export function SettingsSheet({
           {confirmReset ? (
             <>
               <p className="text-14 text-glass-900">
-                This clears your API key, your garment library, and your consent. Stills you have
-                already saved are left alone.
+                This clears your API key, your garment library, your photos of yourself, and your
+                consent. Stills you have already saved are left alone.
               </p>
               <div className="flex gap-4">
                 <Button

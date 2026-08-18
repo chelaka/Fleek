@@ -1,4 +1,11 @@
-import type { AppState, GarmentInput, GarmentWithThumb, Settings } from '@shared/types'
+import type {
+  AppState,
+  GarmentInput,
+  GarmentWithThumb,
+  ModelPhotoInput,
+  ModelPhotoWithThumb,
+  Settings
+} from '@shared/types'
 
 /**
  * The single seam between the app and the machine it runs on.
@@ -49,6 +56,11 @@ export interface FleekPlatform {
   addGarment(input: GarmentInput): Promise<GarmentWithThumb>
   removeGarment(id: string): Promise<void>
 
+  /** Photos of the user. Only the still path has anyone to dress. */
+  listModelPhotos(): Promise<ModelPhotoWithThumb[]>
+  addModelPhoto(input: ModelPhotoInput): Promise<ModelPhotoWithThumb>
+  removeModelPhoto(id: string): Promise<void>
+
   /** Returns a human-readable location, which is not always a real path. */
   saveCapture(pngBase64: string): Promise<string>
   revealCapture(filePath: string): Promise<void>
@@ -57,5 +69,9 @@ export interface FleekPlatform {
   openExternal(url: string): Promise<void>
   pickCaptureDir(): Promise<string | null>
 
-  logSession(event: { kind: 'live-enter' | 'live-exit'; seconds?: number; cost?: number }): Promise<void>
+  logSession(event: {
+    kind: 'live-enter' | 'live-exit' | 'still'
+    seconds?: number
+    cost?: number
+  }): Promise<void>
 }

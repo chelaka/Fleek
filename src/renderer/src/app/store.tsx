@@ -14,6 +14,8 @@ import {
   type AppState,
   type GarmentInput,
   type GarmentWithThumb,
+  type ModelPhotoInput,
+  type ModelPhotoWithThumb,
   type Settings,
   type SlotId
 } from '@shared/types'
@@ -31,6 +33,13 @@ interface Store {
   /** Picking a garment fills its own slot, replacing whatever was there. */
   toggleGarment: (garment: GarmentWithThumb) => void
   clearSlot: (slot: SlotId) => void
+  /** Photos of the user. Empty until someone uses the still path. */
+  modelPhotos: ModelPhotoWithThumb[]
+  /** The photo stills are generated onto, or null if there are none. */
+  activePhoto: ModelPhotoWithThumb | null
+  pickModelPhoto: (id: string) => Promise<void>
+  addModelPhoto: (input: ModelPhotoInput) => Promise<ModelPhotoWithThumb>
+  removeModelPhoto: (id: string) => Promise<void>
   updateSettings: (patch: Partial<Settings>) => Promise<void>
   acceptConsent: () => Promise<void>
   setApiKey: (key: string) => Promise<void>
@@ -58,6 +67,7 @@ export function StoreProvider({ children }: { children: ReactNode }): JSX.Elemen
   const [appVersion, setAppVersion] = useState('')
   const [garments, setGarments] = useState<GarmentWithThumb[]>([])
   const [activeBySlot, setActiveBySlot] = useState<Partial<Record<SlotId, string>>>({})
+  const [modelPhotos, setModelPhotos] = useState<ModelPhotoWithThumb[]>([])
 
   useEffect(() => {
     async function load(): Promise<void> {
@@ -70,6 +80,7 @@ export function StoreProvider({ children }: { children: ReactNode }): JSX.Elemen
       // Whatever was worn most recently is the obvious thing to try again.
       const newest = list[0]
       if (newest) setActiveBySlot({ [newest.slot]: newest.id })
+      setModelPhotos(await platform.listModelPhotos())
       setReady(true)
     }
     void load()
@@ -108,6 +119,35 @@ export function StoreProvider({ children }: { children: ReactNode }): JSX.Elemen
     })
   }, [])
 
+  const pickModelPhoto = useCallback(async (id: string): Promise<void> => {
+    setSettings(await platform.updateSettings({ modelPhotoId: id }))
+  }, [])
+
+  const addModelPhoto = useCallback(
+    async (input: ModelPhotoInput): Promise<ModelPhotoWithThumb> => {
+      const photo = await platform.addModelPhoto(input)
+      setModelPhotos((current) => [photo, ...current])
+      // A photo you just added is the one you meant to use.
+      setSettings(await platform.updateSettings({ modelPhotoId: photo.id }))
+      return photo
+    },
+    []
+  )
+
+  const removeModelPhoto = useCallback(
+    async (id: string): Promise<void> => {
+      await platform.removeModelPhoto(id)
+      const remaining = modelPhotos.filter((photo) => photo.id !== id)
+      setModelPhotos(remaining)
+      // Removing the photo in use hands the slot to the next one rather than
+      // leaving the still path pointing at something that no longer exists.
+      if (settings.modelPhotoId === id) {
+        setSettings(await platform.updateSettings({ modelPhotoId: remaining[0]?.id ?? '' }))
+      }
+    },
+    [modelPhotos, settings.modelPhotoId]
+  )
+
   const reset = useCallback(async (): Promise<void> => {
     await platform.reset()
     const state = await platform.getState()
@@ -115,6 +155,7 @@ export function StoreProvider({ children }: { children: ReactNode }): JSX.Elemen
     setHasApiKey(false)
     setGarments([])
     setActiveBySlot({})
+    setModelPhotos([])
   }, [])
 
   /** Clicking the active garment in a slot takes it off; anything else swaps it in. */
@@ -141,6 +182,17 @@ export function StoreProvider({ children }: { children: ReactNode }): JSX.Elemen
     [garments, activeBySlot]
   )
 
+  /**
+   * The stored photo the still path dresses. A saved id that no longer
+   * matches anything -- a photo removed on another run -- falls back to the
+   * newest, so photo mode is never pointing at nothing while photos exist.
+   */
+  const activePhoto = useMemo(
+    () =>
+      modelPhotos.find((photo) => photo.id === settings.modelPhotoId) ?? modelPhotos[0] ?? null,
+    [modelPhotos, settings.modelPhotoId]
+  )
+
   const value = useMemo<Store>(
     () => ({
       ready,
@@ -152,6 +204,11 @@ export function StoreProvider({ children }: { children: ReactNode }): JSX.Elemen
       activeGarments,
       toggleGarment,
       clearSlot,
+      modelPhotos,
+      activePhoto,
+      pickModelPhoto,
+      addModelPhoto,
+      removeModelPhoto,
       updateSettings,
       acceptConsent,
       setApiKey,
@@ -169,6 +226,11 @@ export function StoreProvider({ children }: { children: ReactNode }): JSX.Elemen
       activeGarments,
       toggleGarment,
       clearSlot,
+      modelPhotos,
+      activePhoto,
+      pickModelPhoto,
+      addModelPhoto,
+      removeModelPhoto,
       updateSettings,
       acceptConsent,
       setApiKey,
