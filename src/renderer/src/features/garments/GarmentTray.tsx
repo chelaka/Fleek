@@ -45,7 +45,7 @@ export function GarmentTray({
   }
 
   return (
-    <div className="flex items-center gap-2 overflow-x-auto pb-1" role="listbox" aria-label="Garments">
+    <div className="scroll-x flex items-center gap-2 pb-1" role="listbox" aria-label="Garments">
       {garments.map((garment) => {
         const def = slotDef(garment.slot)
         const active = activeBySlot[garment.slot] === garment.id
@@ -84,7 +84,7 @@ export function GarmentTray({
             <span
               className={
                 'pointer-events-none absolute inset-x-0 bottom-0 truncate px-1 text-center text-12 leading-4 ' +
-                (active ? 'bg-bulb-500 text-glass-000' : 'bg-glass-000/80 text-glass-600')
+                (active ? 'bg-bulb-500 text-glass-900' : 'bg-glass-100 text-glass-600')
               }
             >
               {def.label}
@@ -104,7 +104,7 @@ export function GarmentTray({
               type="button"
               aria-label={'Remove ' + garment.name}
               onClick={() => onRemove(garment.id)}
-              className="absolute -right-1 -top-1 hidden h-4 w-4 items-center justify-center rounded-full bg-glass-200 text-glass-900 group-hover:flex hover:bg-alarm-500 hover:text-glass-000"
+              className="tap absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-glass-200 text-glass-900 opacity-0 transition-opacity hover:bg-alarm-500 group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
             >
               <X size={12} />
             </button>

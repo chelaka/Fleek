@@ -19,18 +19,20 @@ export function Consent(): JSX.Element {
   }
 
   return (
-    <div className="flex h-full w-full items-center justify-center bg-glass-000 px-6">
+    <div className="flex h-full w-full items-center justify-center overflow-y-auto bg-glass-000 px-4 py-6 sm:px-6">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.24 }}
-        className="flex w-full max-w-[480px] flex-col gap-6"
+        className="flex w-full max-w-[480px] flex-col gap-5 sm:gap-6"
       >
         <p data-face="display" className="text-32 text-glass-900">
           fleek
         </p>
 
-        <h1 className="text-24 font-medium text-glass-900">Your camera feed goes to a server.</h1>
+        <h1 className="text-20 font-medium text-glass-900 sm:text-24">
+          Your camera feed goes to a server.
+        </h1>
 
         <div className="flex flex-col gap-4 text-14 text-glass-600">
           <p>
@@ -39,7 +41,7 @@ export function Consent(): JSX.Element {
             <button
               type="button"
               onClick={openFalPrivacy}
-              className="text-glass-900 underline underline-offset-2 hover:text-bulb-500"
+              className="text-glass-900 underline underline-offset-2 hover:text-bulb-700"
             >
               Read fal&rsquo;s privacy policy
             </button>{' '}

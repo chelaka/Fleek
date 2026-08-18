@@ -23,7 +23,7 @@ export function Meter({ progress, warning, label }: MeterProps): JSX.Element {
         className="h-full rounded-full"
         style={{
           width: Math.min(100, progress * 100) + '%',
-          background: warning ? 'var(--bulb-500)' : 'var(--glass-600)',
+          background: warning ? 'var(--bulb-500)' : 'var(--glass-400)',
           transition: 'background-color var(--dur-cap-warn) linear, width 200ms linear'
         }}
       />

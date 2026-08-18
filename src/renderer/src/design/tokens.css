@@ -3,22 +3,44 @@
  * Nothing in the app may use a raw hex value, a font stack, or a spacing
  * value that is not defined here. If a new one is needed, add it here first.
  *
- * The idea: green-black glass, lit by a warm vanity bulb.
+ * The idea: daylight on glass. A bright, quiet room with a real mirror in it.
+ * Float glass has iron in it, which is why every mirror is faintly green, so
+ * the neutrals carry a trace of that green rather than being flatly grey.
+ *
+ * The mirror surface itself stays dark on purpose. A mirror is dark glass,
+ * video reads better against it than against paper, and it gives the one
+ * thing that matters somewhere to sit. Everything around it is light.
  */
 
 :root {
-  /* ---- Color -------------------------------------------------------- */
-  --glass-000: #0a0d0c; /* app background, deepest */
-  --glass-100: #121716; /* raised surfaces: tray, sheets */
-  --glass-200: #1b2220; /* borders, dividers, inactive fills */
-  --glass-400: #46514e; /* disabled text, hairlines */
-  --glass-600: #7e8b87; /* secondary text */
-  --glass-900: #e6ece9; /* primary text */
+  color-scheme: light;
 
-  --bulb-500: #e8a33d; /* the only accent */
-  --bulb-100: #3a2a12; /* accent at 12% over glass-000, for fills */
+  /* ---- Surfaces and text, lightest to darkest ----------------------- */
+  --glass-000: #fbfcfb; /* app background */
+  --glass-100: #f2f5f3; /* raised surfaces: tray, sheets */
+  --glass-200: #e2e8e4; /* borders, dividers, inactive fills */
+  --glass-400: #a7b2ad; /* disabled text, hairlines */
+  --glass-600: #626e69; /* secondary text — 4.9:1 on glass-000 */
+  --glass-900: #121716; /* primary text — 16:1 on glass-000 */
 
-  --alarm-500: #d96b5a; /* cap reached, connection failed — nothing else */
+  /* ---- The mirror stage --------------------------------------------- */
+  /* The one dark region. Its own text scale, because glass-900 would
+     vanish against it. */
+  --stage-000: #0e1211;
+  --stage-600: #7f8b87;
+  --stage-900: #edf1ef;
+
+  /* ---- The accent ---------------------------------------------------- */
+  /* bulb-500 is a fill colour. On a light ground it does not have the
+     contrast to be text, so bulb-700 exists for anything you have to read. */
+  --bulb-500: #e8a33d; /* fills: primary button, active ring, live dot */
+  --bulb-700: #8a5a0f; /* amber text — 6.1:1 on glass-000 */
+  --bulb-100: #fdf3e2; /* accent tint for selected chips and drop targets */
+
+  /* ---- Alarm ---------------------------------------------------------- */
+  /* Cap reached, connection failed. Nothing else. */
+  --alarm-500: #d96b5a; /* fills */
+  --alarm-700: #a8341f; /* alarm text — 6.4:1 on glass-000 */
 
   /* ---- Type --------------------------------------------------------- */
   --font-display: 'Fraunces', 'Iowan Old Style', Georgia, serif;
@@ -42,6 +64,23 @@
   --radius: 4px;
   --radius-sheet: 8px;
   --radius-full: 999px;
+
+  /* ---- Elevation ---------------------------------------------------- */
+  /* Light interfaces need shadow where dark ones used a lighter fill. */
+  --shadow-sheet: 0 -4px 24px rgba(18, 23, 22, 0.08);
+  --shadow-hud: 0 4px 16px rgba(18, 23, 22, 0.1);
+
+  /* ---- Compositing -------------------------------------------------- */
+  --wipe-band: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(232, 163, 61, 0.06) 35%,
+    rgba(237, 241, 239, 0.2) 50%,
+    rgba(232, 163, 61, 0.06) 65%,
+    transparent 100%
+  );
+  --scrim: rgba(18, 23, 22, 0.32);
+  --flash: rgba(255, 255, 255, 0.32);
 
   /* ---- Motion ------------------------------------------------------- */
   --ease-wipe: cubic-bezier(0.22, 1, 0.36, 1);
@@ -81,20 +120,4 @@
   src: url('/fonts/GeistMono.woff2') format('woff2-variations');
   font-weight: 100 900;
   font-display: swap;
-}
-
-/* The wipe band. Its colours are glass-900 and bulb-500 at low alpha; they
-   live here rather than in the component so tokens.css stays the only file
-   that names a colour. */
-:root {
-  --wipe-band: linear-gradient(
-    to bottom,
-    transparent 0%,
-    rgba(232, 163, 61, 0.05) 35%,
-    rgba(230, 236, 233, 0.16) 50%,
-    rgba(232, 163, 61, 0.05) 65%,
-    transparent 100%
-  );
-  --scrim: rgba(10, 13, 12, 0.6);
-  --flash: rgba(230, 236, 233, 0.24);
 }

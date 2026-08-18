@@ -93,12 +93,18 @@ export function Mirror(): JSX.Element {
 
   return (
     <div className="relative flex h-full w-full flex-col bg-glass-000">
-      {/* Top bar. The right end is left clear for the window controls. */}
-      <header className="drag-region flex h-bar flex-none items-center justify-between px-6">
+      {/* Top bar. On desktop the right end is left clear for the window
+          controls; in a browser there are none, so the space is reclaimed. */}
+      <header className="drag-region flex h-bar flex-none items-center justify-between border-b border-glass-200 px-4 sm:px-6">
         <span data-face="display" className="text-20 text-glass-900">
           fleek
         </span>
-        <div className="no-drag flex items-center gap-4 pr-24">
+        <div
+          className={
+            'no-drag flex items-center gap-2 sm:gap-4 ' +
+            (platform.kind === 'electron' ? 'pr-24' : '')
+          }
+        >
           <StatusDot status={session.status} />
           <IconButton
             aria-label="Settings"
@@ -109,7 +115,7 @@ export function Mirror(): JSX.Element {
       </header>
 
       {/* The mirror. */}
-      <main className="relative flex-1 overflow-hidden bg-glass-000">
+      <main className="on-stage relative min-h-0 flex-1 overflow-hidden bg-stage-000">
         <video
           ref={localRef}
           autoPlay
@@ -134,8 +140,8 @@ export function Mirror(): JSX.Element {
         <Wipe trigger={session.wipeKey} />
 
         {!showOutput ? (
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-12 text-center">
-            <p data-face="display" className="text-32 text-glass-900">
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-6 text-center sm:px-12">
+            <p data-face="display" className="text-20 text-stage-900 sm:text-32">
               {camera.error
                 ? camera.error
                 : session.status === 'connecting'
@@ -230,7 +236,7 @@ export function Mirror(): JSX.Element {
       </main>
 
       {/* Tray. */}
-      <footer className="flex h-tray flex-none items-center gap-6 border-t border-glass-200 bg-glass-100 px-6">
+      <footer className="flex flex-none flex-col gap-3 border-t border-glass-200 bg-glass-100 px-4 py-3 sm:h-tray sm:flex-row sm:items-center sm:gap-6 sm:px-6 sm:py-0">
         <div className="min-w-0 flex-1">
           <GarmentTray
             garments={garments}
@@ -241,8 +247,9 @@ export function Mirror(): JSX.Element {
           />
         </div>
 
-        <div className="flex flex-none items-center gap-4">
+        <div className="flex flex-none items-center gap-3 sm:gap-4">
           <Button
+            className="flex-1 sm:flex-none"
             variant={session.active ? 'secondary' : 'primary'}
             disabled={primaryDisabled}
             title={primaryHint}

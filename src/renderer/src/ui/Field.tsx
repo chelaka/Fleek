@@ -17,7 +17,7 @@ function Label({ htmlFor, children }: { htmlFor: string; children: ReactNode }):
 }
 
 const control =
-  'w-full h-10 rounded bg-glass-100 border border-glass-200 px-3 text-14 text-glass-900 ' +
+  'w-full h-10 rounded bg-glass-000 border border-glass-200 px-3 text-14 text-glass-900 ' +
   'placeholder:text-glass-400 transition-colors hover:border-glass-400'
 
 export type TextFieldProps = Shell & InputHTMLAttributes<HTMLInputElement>
@@ -35,7 +35,7 @@ export function TextField({ label, icon, hint, error, className = '', ...rest }:
         ) : null}
         <input id={id} className={control + (icon ? ' pl-10' : '') + ' ' + className} {...rest} />
       </div>
-      {error ? <p className="text-12 text-alarm-500">{error}</p> : null}
+      {error ? <p className="text-12 text-alarm-700">{error}</p> : null}
       {!error && hint ? <p className="text-12 text-glass-600">{hint}</p> : null}
     </div>
   )
@@ -70,7 +70,7 @@ export function SelectField({
           {children}
         </select>
       </div>
-      {error ? <p className="text-12 text-alarm-500">{error}</p> : null}
+      {error ? <p className="text-12 text-alarm-700">{error}</p> : null}
       {!error && hint ? <p className="text-12 text-glass-600">{hint}</p> : null}
     </div>
   )

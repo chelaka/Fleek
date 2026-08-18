@@ -42,14 +42,16 @@ export function Setup({ onDone }: { onDone: () => void }): JSX.Element {
   }
 
   return (
-    <div className="flex h-full w-full items-center justify-center bg-glass-000 px-6">
+    <div className="flex h-full w-full items-center justify-center overflow-y-auto bg-glass-000 px-4 py-6 sm:px-6">
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.24 }}
-        className="flex w-full max-w-[480px] flex-col gap-6"
+        className="flex w-full max-w-[480px] flex-col gap-5 sm:gap-6"
       >
-        <h1 className="text-24 font-medium text-glass-900">Two things and you&rsquo;re set.</h1>
+        <h1 className="text-20 font-medium text-glass-900 sm:text-24">
+          Two things and you&rsquo;re set.
+        </h1>
 
         <div className="flex flex-col gap-3">
           <TextField
@@ -75,7 +77,7 @@ export function Setup({ onDone }: { onDone: () => void }): JSX.Element {
               {test.state === 'busy' ? 'Testing' : 'Test connection'}
             </Button>
             {test.state === 'done' ? (
-              <span className={'text-12 ' + (test.ok ? 'text-glass-600' : 'text-alarm-500')}>
+              <span className={'text-12 ' + (test.ok ? 'text-glass-600' : 'text-alarm-700')}>
                 {test.message}
               </span>
             ) : null}
@@ -98,7 +100,7 @@ export function Setup({ onDone }: { onDone: () => void }): JSX.Element {
             ))}
           </SelectField>
 
-          <div className="relative h-24 w-full overflow-hidden rounded border border-glass-200 bg-glass-100">
+          <div className="relative h-24 w-full overflow-hidden rounded border border-glass-200 bg-stage-000">
             <video
               ref={previewRef}
               autoPlay
@@ -107,7 +109,7 @@ export function Setup({ onDone }: { onDone: () => void }): JSX.Element {
               className="mirrored h-full w-full object-cover"
             />
             {!camera.stream ? (
-              <div className="absolute inset-0 flex items-center justify-center px-4 text-center text-12 text-glass-600">
+              <div className="absolute inset-0 flex items-center justify-center px-4 text-center text-12 text-stage-600">
                 {camera.opening ? 'Opening the camera' : (camera.error ?? 'No preview')}
               </div>
             ) : null}

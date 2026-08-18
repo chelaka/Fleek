@@ -199,7 +199,7 @@ export function IntakeSheet({ open, onClose, localStream, onAdd }: IntakeSheetPr
         </div>
       </div>
 
-      <div className="grid h-48 grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-3 sm:h-48 sm:grid-cols-3 sm:gap-4">
         <button
           type="button"
           disabled={working}
@@ -215,7 +215,7 @@ export function IntakeSheet({ open, onClose, localStream, onAdd }: IntakeSheetPr
             fromFiles(e.dataTransfer.files)
           }}
           className={
-            'flex flex-col items-center justify-center gap-3 rounded border border-dashed p-4 text-14 transition-colors ' +
+            'flex min-h-16 flex-col items-center justify-center gap-2 rounded border border-dashed p-4 text-14 transition-colors sm:gap-3 ' +
             (dragging
               ? 'border-bulb-500 bg-bulb-100 text-glass-900'
               : 'border-glass-400 text-glass-600 hover:border-glass-600 hover:text-glass-900')
@@ -240,7 +240,7 @@ export function IntakeSheet({ open, onClose, localStream, onAdd }: IntakeSheetPr
               data-face="display"
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="relative text-48 text-glass-900"
+              className="relative text-48 text-stage-900"
             >
               {countdown}
             </motion.span>
@@ -249,11 +249,11 @@ export function IntakeSheet({ open, onClose, localStream, onAdd }: IntakeSheetPr
               type="button"
               disabled={working}
               onClick={shoot}
-              className="relative flex flex-col items-center gap-3 text-14 text-glass-600 hover:text-glass-900"
+              className="relative flex flex-col items-center gap-2 text-14 text-stage-600 hover:text-stage-900 sm:gap-3"
             >
               <VideoCamera size={24} />
               Shoot it
-              <span className="text-12 text-glass-400">hold the garment up</span>
+              <span className="text-12 text-stage-600">hold the garment up</span>
             </button>
           )}
         </div>
@@ -262,7 +262,7 @@ export function IntakeSheet({ open, onClose, localStream, onAdd }: IntakeSheetPr
           type="button"
           disabled={working}
           onClick={() => void paste()}
-          className="flex flex-col items-center justify-center gap-3 rounded border border-glass-200 p-4 text-14 text-glass-600 transition-colors hover:border-glass-400 hover:text-glass-900"
+          className="flex min-h-16 flex-col items-center justify-center gap-2 rounded border border-glass-200 p-4 text-14 text-glass-600 transition-colors hover:border-glass-400 hover:text-glass-900 sm:gap-3"
         >
           <ClipboardText size={24} />
           Paste
@@ -270,7 +270,7 @@ export function IntakeSheet({ open, onClose, localStream, onAdd }: IntakeSheetPr
         </button>
       </div>
 
-      <p className={'text-12 ' + (slotDef(slot).caveat && !working ? 'text-alarm-500' : 'text-glass-600')}>
+      <p className={'text-12 ' + (slotDef(slot).caveat && !working ? 'text-alarm-700' : 'text-glass-600')}>
         {working
           ? busyLabel
           : (slotDef(slot).caveat ??

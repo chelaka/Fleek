@@ -43,12 +43,19 @@ export default {
         600: 'var(--glass-600)',
         900: 'var(--glass-900)'
       },
+      stage: {
+        '000': 'var(--stage-000)',
+        600: 'var(--stage-600)',
+        900: 'var(--stage-900)'
+      },
       bulb: {
         100: 'var(--bulb-100)',
-        500: 'var(--bulb-500)'
+        500: 'var(--bulb-500)',
+        700: 'var(--bulb-700)'
       },
       alarm: {
-        500: 'var(--alarm-500)'
+        500: 'var(--alarm-500)',
+        700: 'var(--alarm-700)'
       }
     },
     fontFamily: {
@@ -59,6 +66,7 @@ export default {
     fontWeight: { light: '300', normal: '400', medium: '500' },
     extend: {
       transitionTimingFunction: { wipe: 'cubic-bezier(0.22, 1, 0.36, 1)' },
+      boxShadow: { sheet: 'var(--shadow-sheet)', hud: 'var(--shadow-hud)' },
       width: { tray: '64px' },
       height: { bar: '56px', tray: '96px', sheet: '320px' }
     }

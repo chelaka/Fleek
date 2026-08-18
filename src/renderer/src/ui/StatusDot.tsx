@@ -26,7 +26,7 @@ export function StatusDot({ status }: { status: StatusWord }): JSX.Element {
         animate={breathing ? { opacity: [1, 0.55, 1] } : { opacity: 1 }}
         transition={breathing ? { duration: 2.4, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.12 }}
       />
-      <span className={status === 'live' ? 'text-bulb-500' : undefined}>{status}</span>
+      <span className={status === 'live' ? 'text-bulb-700' : undefined}>{status}</span>
     </div>
   )
 }

@@ -16,6 +16,19 @@
     margin: 0;
   }
 
+  /*
+   * Mobile browsers grow and shrink their own chrome as you scroll, so 100vh
+   * is taller than the screen and the tray ends up under the address bar.
+   * dvh tracks the real viewport; the vh line above is the fallback.
+   */
+  @supports (height: 100dvh) {
+    html,
+    body,
+    #root {
+      height: 100dvh;
+    }
+  }
+
   body {
     background: var(--glass-000);
     color: var(--glass-900);
@@ -26,6 +39,27 @@
     overflow: hidden;
     user-select: none;
     cursor: default;
+    /* Phones with a notch or a home indicator. */
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+      env(safe-area-inset-left);
+  }
+
+  input,
+  select,
+  textarea {
+    font: inherit;
+    color: inherit;
+    user-select: text;
+    /* iOS Safari zooms the page when a font smaller than 16px gains focus. */
+    font-size: 16px;
+  }
+
+  @media (min-width: 640px) {
+    input,
+    select,
+    textarea {
+      font-size: 14px;
+    }
   }
 
   /* One focus treatment for the whole app: amber, 2px, offset 2px. */
@@ -38,12 +72,9 @@
     border-radius: var(--radius);
   }
 
-  input,
-  select,
-  textarea {
-    font: inherit;
-    color: inherit;
-    user-select: text;
+  /* Inside the dark mirror, the amber ring needs the brighter fill to read. */
+  .on-stage :focus-visible {
+    outline-color: var(--bulb-500);
   }
 
   ::-webkit-scrollbar {
@@ -75,6 +106,27 @@
   }
   .no-drag {
     -webkit-app-region: no-drag;
+  }
+
+  /* Touch targets stay at least 44px however small the visual control is. */
+  .tap {
+    position: relative;
+  }
+  .tap::after {
+    content: '';
+    position: absolute;
+    inset: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
+
+  /* Horizontal scrollers should not also bounce the page on touch. */
+  .scroll-x {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
   }
 }
 

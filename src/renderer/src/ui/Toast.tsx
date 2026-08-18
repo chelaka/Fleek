@@ -36,7 +36,7 @@ export function ToastHost({ children }: { children: ReactNode }): JSX.Element {
     <ToastContext.Provider value={api}>
       {children}
       <div
-        className="pointer-events-none absolute bottom-24 left-1/2 z-30 flex -translate-x-1/2 flex-col items-center gap-2"
+        className="pointer-events-none absolute bottom-24 left-1/2 z-30 flex w-full max-w-full -translate-x-1/2 flex-col items-center gap-2 px-4"
         role="status"
         aria-live="polite"
       >
@@ -49,8 +49,8 @@ export function ToastHost({ children }: { children: ReactNode }): JSX.Element {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.24 }}
               className={
-                'pointer-events-auto max-w-[480px] rounded border border-glass-200 bg-glass-100 px-4 py-3 text-14 ' +
-                (toast.tone === 'alarm' ? 'text-alarm-500' : 'text-glass-900')
+                'pointer-events-auto mx-4 max-w-[480px] rounded bg-glass-100 px-4 py-3 text-14 shadow-hud ' +
+                (toast.tone === 'alarm' ? 'text-alarm-700' : 'text-glass-900')
               }
             >
               {toast.message}

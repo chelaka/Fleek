@@ -21,7 +21,7 @@ export function SessionHud({ meter, capSeconds, shake }: SessionHudProps): JSX.E
 
   return (
     <motion.div
-      className="pointer-events-none absolute bottom-6 right-6 flex w-40 flex-col gap-3 rounded border border-glass-200 bg-glass-100 p-4"
+      className="pointer-events-none absolute bottom-4 right-4 flex w-36 flex-col gap-2 rounded bg-glass-100 p-3 shadow-hud sm:bottom-6 sm:right-6 sm:w-40 sm:gap-3 sm:p-4"
       initial="hidden"
       animate={shake && !reduced ? { x: [0, -4, 4, -4, 0], opacity: 1, y: 0 } : 'shown'}
       exit={{ opacity: 0 }}
@@ -38,7 +38,7 @@ export function SessionHud({ meter, capSeconds, shake }: SessionHudProps): JSX.E
         <span className="text-12 text-glass-600">elapsed</span>
         <RollingNumerals
           value={formatElapsed(meter.seconds)}
-          className={'text-16 ' + (meter.warning ? 'text-bulb-500' : 'text-glass-900')}
+          className={'text-16 ' + (meter.warning ? 'text-bulb-700' : 'text-glass-900')}
         />
       </motion.div>
 
@@ -46,7 +46,7 @@ export function SessionHud({ meter, capSeconds, shake }: SessionHudProps): JSX.E
         <span className="text-12 text-glass-600">cost</span>
         <RollingNumerals
           value={formatCost(meter.cost)}
-          className={'text-16 ' + (meter.warning ? 'text-bulb-500' : 'text-glass-900')}
+          className={'text-16 ' + (meter.warning ? 'text-bulb-700' : 'text-glass-900')}
         />
       </motion.div>
 

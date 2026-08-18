@@ -84,7 +84,7 @@ export function Sheet({ open, title, onClose, size = 'intake', children }: Sheet
             aria-modal="true"
             aria-label={title}
             className={
-              'relative flex flex-col gap-4 rounded-t-sheet border-t border-glass-200 bg-glass-100 p-6 ' +
+              'relative flex flex-col gap-4 rounded-t-sheet bg-glass-100 p-4 shadow-sheet sm:p-6 ' +
               // Both sheets grow to fit and stop at 80% of the mirror, which
               // is the point where covering the reflection starts to cost.
               (size === 'intake' ? 'max-h-[80%]' : 'max-h-[80%] overflow-y-auto')

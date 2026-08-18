@@ -82,8 +82,8 @@ export const DEFAULT_SETTINGS: Settings = {
  * Native chrome needs JS colour values before any stylesheet exists.
  * These two must stay in step with --glass-000 and --glass-600 in tokens.css.
  */
-export const WINDOW_BACKGROUND = '#0A0D0C' // grid-ok: mirrors --glass-000
-export const WINDOW_SYMBOL = '#7E8B87' // grid-ok: mirrors --glass-600
+export const WINDOW_BACKGROUND = '#FBFCFB' // grid-ok: mirrors --glass-000
+export const WINDOW_SYMBOL = '#626E69' // grid-ok: mirrors --glass-600
 
 export const WINDOW_SIZE = { width: 1280, height: 832, minWidth: 960, minHeight: 640 }
 export const TITLE_BAR_HEIGHT = 56
