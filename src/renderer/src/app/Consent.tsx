@@ -15,7 +15,7 @@ export function Consent(): JSX.Element {
   const [busy, setBusy] = useState(false)
 
   const openFalPrivacy = (): void => {
-    void platform.openExternal('https://fal.ai/privacy')
+    void platform.openExternal('https://decart.ai/privacy')
   }
 
   return (
@@ -36,20 +36,20 @@ export function Consent(): JSX.Element {
 
         <div className="flex flex-col gap-4 text-14 text-glass-600">
           <p>
-            Fleek sends live video from your webcam to fal.ai, where a model repaints the clothing
+            Fleek sends live video from your webcam to Decart, where a model repaints the clothing
             and sends the frames back. Nothing is stored by Fleek unless you capture a still.{' '}
             <button
               type="button"
               onClick={openFalPrivacy}
               className="text-glass-900 underline underline-offset-2 hover:text-bulb-700"
             >
-              Read fal&rsquo;s privacy policy
+              Read Decart&rsquo;s privacy policy
             </button>{' '}
             before you continue.
           </p>
           <p>
             Photo mode is the other half: it dresses a photo of you rather than the live feed.
-            Photos you add are kept on this machine and sent to fal each time you generate. You
+            Photos you add are kept on this machine and sent to Decart each time you generate. You
             can remove them at any time.
           </p>
           <p>

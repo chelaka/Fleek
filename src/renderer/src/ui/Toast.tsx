@@ -36,7 +36,9 @@ export function ToastHost({ children }: { children: ReactNode }): JSX.Element {
     <ToastContext.Provider value={api}>
       {children}
       <div
-        className="pointer-events-none absolute bottom-24 left-1/2 z-30 flex w-full max-w-full -translate-x-1/2 flex-col items-center gap-2 px-4"
+        // Top centre, clear of the dock. The bottom of the frame is now three
+        // panels deep and a toast landing there would cover the price.
+        className="pointer-events-none absolute left-1/2 top-24 z-30 flex w-full max-w-full -translate-x-1/2 flex-col items-center gap-2 px-4"
         role="status"
         aria-live="polite"
       >
@@ -44,12 +46,12 @@ export function ToastHost({ children }: { children: ReactNode }): JSX.Element {
           {toasts.map((toast) => (
             <motion.div
               key={toast.id}
-              initial={reduced ? { opacity: 0 } : { opacity: 0, y: 8 }}
+              initial={reduced ? { opacity: 0 } : { opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.24 }}
               className={
-                'pointer-events-auto mx-4 max-w-[480px] rounded bg-glass-100 px-4 py-3 text-14 shadow-hud ' +
+                'panel pointer-events-auto mx-4 max-w-[480px] rounded-lg px-4 py-3 text-14 ' +
                 (toast.tone === 'alarm' ? 'text-alarm-700' : 'text-glass-900')
               }
             >

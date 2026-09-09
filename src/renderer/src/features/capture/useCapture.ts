@@ -52,9 +52,10 @@ export function useCapture(): UseCaptureResult {
   )
 
   /**
-   * A generated still is already an image on fal's storage, so this fetches
-   * it back rather than reading a video frame. Everything after that -- the
-   * flash, the arc to the corner, the saved file -- is identical.
+   * A generated still is already an image, held as an object URL on this
+   * machine, so this reads it back rather than grabbing a video frame.
+   * Everything after that -- the flash, the arc to the corner, the saved
+   * file -- is identical.
    */
   const save = useCallback(
     async (url: string | null): Promise<void> => {
@@ -62,7 +63,7 @@ export function useCapture(): UseCaptureResult {
       busy.current = true
       try {
         const response = await fetch(url)
-        if (!response.ok) throw new Error('That image could not be fetched back from fal.')
+        if (!response.ok) throw new Error('That image could not be read back to save it.')
         const base64 = await blobToBase64(await response.blob())
 
         setFlashing(true)

@@ -1,4 +1,6 @@
+import { resolveFpsNumber } from '@decartai/sdk'
 import { platform } from '@/platform'
+import { vtonModel } from '@/features/session/client'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 /**
@@ -24,11 +26,15 @@ export interface UseCameraResult {
   retry: () => void
 }
 
-/** 1280x720 at 30fps is the target the model is fed. */
+/**
+ * Whatever the live model asks for, rather than a number copied into two
+ * places. `lucy-vton-3.5` wants 1280x720 at 30fps; if that ever changes, it
+ * changes in the model definition and the camera follows.
+ */
 const CONSTRAINTS: MediaTrackConstraints = {
-  width: { ideal: 1280 },
-  height: { ideal: 720 },
-  frameRate: { ideal: 30 }
+  width: { ideal: vtonModel.width },
+  height: { ideal: vtonModel.height },
+  frameRate: { ideal: resolveFpsNumber(vtonModel.fps) }
 }
 
 function sentenceFor(error: unknown): { message: string; blockedByOs: boolean } {

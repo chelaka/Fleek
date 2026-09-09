@@ -15,8 +15,14 @@ import {
 } from '@shared/types'
 import { clearApiKey, getApiKey, hasApiKey, setApiKey } from './credentials'
 import { defaultCaptureDir, getSettings, resetSettings, updateSettings } from './settings'
-import { addGarment, clearLibrary, listGarments, removeGarment } from './library'
-import { addModelPhoto, clearModelPhotos, listModelPhotos, removeModelPhoto } from './models'
+import { addGarment, clearLibrary, listGarments, readGarmentImage, removeGarment } from './library'
+import {
+  addModelPhoto,
+  clearModelPhotos,
+  listModelPhotos,
+  readModelPhotoImage,
+  removeModelPhoto
+} from './models'
 import { saveCapture } from './capture'
 import type { IpcContract } from '@shared/ipc'
 
@@ -105,14 +111,15 @@ function createWindow(): void {
 }
 
 /**
- * Diagnostics must never become a credential leak. fal puts its short-lived
- * JWT in the signalling URL, so anything token-shaped is masked before it
+ * Diagnostics must never become a credential leak. Realtime signalling puts
+ * short-lived tokens in URLs, so anything token-shaped is masked before it
  * reaches disk -- a log the user might paste into an issue is a log that has
- * to be safe to paste.
+ * to be safe to paste. `dct_` is Decart's own permanent key prefix.
  */
 function redactSecrets(text: string): string {
   return text
-    .replace(/(fal_jwt_token=)[^&'"\s]+/gi, '$1[redacted]')
+    .replace(/\bdct_[A-Za-z0-9._-]{8,}/g, '[redacted-key]')
+    .replace(/((?:fal_jwt_)?token=)[^&'"\s]+/gi, '$1[redacted]')
     .replace(/(token|key|authorization|credentials)("?\s*[:=]\s*"?)[A-Za-z0-9._~+/-]{16,}/gi, '$1$2[redacted]')
     .replace(/\beyJ[A-Za-z0-9._-]{20,}/g, '[redacted-jwt]')
 }
@@ -164,6 +171,9 @@ const handlers: {
   'library:list': () => listGarments(),
   'library:add': (input: GarmentInput) => addGarment(input),
   'library:remove': (id: string) => removeGarment(id),
+
+  'image:read': (kind: 'garment' | 'photo', id: string) =>
+    kind === 'garment' ? readGarmentImage(id) : readModelPhotoImage(id),
 
   'models:list': () => listModelPhotos(),
   'models:add': (input: ModelPhotoInput) => addModelPhoto(input),

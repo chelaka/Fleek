@@ -5,7 +5,7 @@ import { Key, VideoCamera } from '@phosphor-icons/react'
 import { Button } from '@/ui/Button'
 import { SelectField, TextField } from '@/ui/Field'
 import { useCamera } from '@/features/camera/useCamera'
-import { testApiKey } from '@/features/session/upload'
+import { testApiKey } from '@/features/session/client'
 import { useStore } from './store'
 
 type TestResult = { state: 'idle' } | { state: 'busy' } | { state: 'done'; ok: boolean; message: string }
@@ -32,7 +32,7 @@ export function Setup({ onDone }: { onDone: () => void }): JSX.Element {
     setTest({
       state: 'done',
       ok: result.ok,
-      message: result.ok ? 'fal accepted the key.' : result.message
+      message: result.ok ? 'Decart accepted the key.' : result.message
     })
   }
 
@@ -55,12 +55,12 @@ export function Setup({ onDone }: { onDone: () => void }): JSX.Element {
 
         <div className="flex flex-col gap-3">
           <TextField
-            label="fal API key"
+            label="Decart API key"
             type="password"
             icon={<Key size={20} />}
             autoComplete="off"
             spellCheck={false}
-            placeholder={hasApiKey ? 'Stored. Type to replace it.' : 'Paste your key from fal.ai'}
+            placeholder={hasApiKey ? 'Stored. Type to replace it.' : 'Paste your key from decart.ai'}
             value={key}
             onChange={(e) => {
               setKey(e.currentTarget.value)
@@ -69,7 +69,7 @@ export function Setup({ onDone }: { onDone: () => void }): JSX.Element {
             hint={
               platform.can.secureKeyStorage
                 ? 'Encrypted on this machine with Windows credential storage.'
-                : 'Your key stays in this browser and is sent only to fal.'
+                : 'Your key stays in this browser and is sent only to Decart.'
             }
           />
           <div className="flex items-center gap-4">

@@ -1,18 +1,25 @@
 import { useState } from 'react'
 import { platform } from '@/platform'
-import { FolderOpen, Key, VideoCamera } from '@phosphor-icons/react'
+import { Eye, FolderOpen, Key, Sparkle, VideoCamera } from '@phosphor-icons/react'
 import {
   CAP_MAX_SECONDS,
   CAP_MIN_SECONDS,
+  COST_PER_IMAGE,
   COST_PER_SECOND,
-  DEFAULT_PROMPT
+  DEFAULT_PROMPT,
+  DEFAULT_PRESENCE_MODE,
+  DEFAULT_STILL_MODE,
+  PRESENCE_MODES,
+  STILL_MODES,
+  isPresenceMode,
+  isStillMode
 } from '@shared/types'
 import { Button } from '@/ui/Button'
 import { SelectField, SliderField, TextField } from '@/ui/Field'
 import { Sheet } from '@/ui/Sheet'
 import { useToast } from '@/ui/Toast'
 import type { CameraDevice } from '@/features/camera/useCamera'
-import { testApiKey } from '@/features/session/upload'
+import { testApiKey } from '@/features/session/client'
 import { useStore } from './store'
 
 export interface SettingsSheetProps {
@@ -49,7 +56,7 @@ export function SettingsSheet({
     const candidate = key.trim() || (await platform.getApiKey()) || ''
     const result = await testApiKey(candidate)
     setTesting(false)
-    toast.say(result.ok ? 'fal accepted the key.' : result.message, result.ok ? 'plain' : 'alarm')
+    toast.say(result.ok ? 'Decart accepted the key.' : result.message, result.ok ? 'plain' : 'alarm')
   }
 
   const pickFolder = async (): Promise<void> => {
@@ -62,18 +69,18 @@ export function SettingsSheet({
       <div className="flex flex-col gap-6">
         <div className="flex flex-col gap-3">
           <TextField
-            label="fal API key"
+            label="Decart API key"
             type="password"
             icon={<Key size={20} />}
             autoComplete="off"
             spellCheck={false}
-            placeholder={hasApiKey ? 'Stored. Type to replace it.' : 'Paste your key from fal.ai'}
+            placeholder={hasApiKey ? 'Stored. Type to replace it.' : 'Paste your key from decart.ai'}
             value={key}
             onChange={(e) => setKey(e.currentTarget.value)}
             hint={
               platform.can.secureKeyStorage
                 ? 'Encrypted at rest with Windows credential storage. Anyone signed in to this Windows account can read it back through Fleek, so treat it as yours, not as a secret.'
-                : 'Your key stays in this browser and is sent only to fal. It is kept in localStorage, which any script on this page could read — so use a key scoped to API access, and clear it with Reset when you are done.'
+                : 'Your key stays in this browser and is sent only to Decart. It is kept in localStorage, which any script on this page could read — so treat it as yours rather than as a secret, and clear it with Reset when you are done. Each session runs on a short-lived key carrying your time limit, so a tab that dies cannot leave a meter running.'
             }
           />
           <div className="flex gap-4">
@@ -102,6 +109,33 @@ export function SettingsSheet({
           ))}
         </SelectField>
 
+        {/* Directly under the camera, because that is what it is about, and
+            directly above the cap, because both are answers to "how do I not
+            get billed for nothing?" */}
+        <SelectField
+          label="Start and stop"
+          icon={<Eye size={20} />}
+          value={settings.presenceMode}
+          disabled={sessionActive}
+          hint={
+            (PRESENCE_MODES.find((m) => m.id === settings.presenceMode)?.note ?? '') +
+            ' Detection runs on this machine and is not billed; no frame is sent anywhere.'
+          }
+          onChange={(e) =>
+            void updateSettings({
+              presenceMode: isPresenceMode(e.currentTarget.value)
+                ? e.currentTarget.value
+                : DEFAULT_PRESENCE_MODE
+            })
+          }
+        >
+          {PRESENCE_MODES.map((mode) => (
+            <option key={mode.id} value={mode.id}>
+              {mode.label}
+            </option>
+          ))}
+        </SelectField>
+
         <SliderField
           label="Session cap"
           min={CAP_MIN_SECONDS}
@@ -112,6 +146,31 @@ export function SettingsSheet({
           hint="Fleek closes the session itself at this point, and says so."
           onChange={(value) => void updateSettings({ capSeconds: value })}
         />
+
+        <SelectField
+          label="Still size"
+          icon={<Sparkle size={20} />}
+          value={settings.stillMode}
+          hint={
+            (STILL_MODES.find((mode) => mode.id === settings.stillMode)?.note ?? '') +
+            ' Full costs $' +
+            COST_PER_IMAGE.toFixed(2) +
+            ' a garment; draft is less.'
+          }
+          onChange={(e) =>
+            void updateSettings({
+              stillMode: isStillMode(e.currentTarget.value)
+                ? e.currentTarget.value
+                : DEFAULT_STILL_MODE
+            })
+          }
+        >
+          {STILL_MODES.map((mode) => (
+            <option key={mode.id} value={mode.id}>
+              {mode.label}
+            </option>
+          ))}
+        </SelectField>
 
         <div className="flex flex-col gap-2">
           <span className="text-12 font-medium uppercase tracking-wide text-glass-600">

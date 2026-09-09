@@ -1,23 +1,32 @@
 import { describe, expect, it } from 'vitest'
+import { DEFAULT_PROMPT } from '@shared/types'
 import { buildPrompt, orderEntries, panelName } from './prompt'
 
 describe('a single garment', () => {
-  it('reads exactly like the v1 prompt did, with no panel talk', () => {
+  it('names the region the way the prompting guide does, with no panel talk', () => {
     expect(buildPrompt([{ slot: 'top' }])).toBe(
-      'Substitute the current top with the top in the reference image, matching color, material, and fit. ' +
+      'Substitute the upper body garment with the top in the reference image, matching color, pattern, material, and fit. ' +
         'The reference may show the item alone, laid flat, on a hanger, or worn by someone else -- read its ' +
         'color, material, cut, and construction from whatever is shown. ' +
-        'Keep everything else about the person unchanged.'
+        "Keep the person's face, hair, skin tone, hands, body, and pose unchanged, and keep the background " +
+        'and the direction of the light exactly as they are.'
     )
   })
 
+  it('names the background and the light, which "about the person" never covered', () => {
+    const prompt = buildPrompt([{ slot: 'top' }])
+    expect(prompt).toContain('keep the background')
+    expect(prompt).toContain('the direction of the light')
+  })
+
   it('adds rather than substitutes for things you are not already wearing', () => {
-    expect(buildPrompt([{ slot: 'headwear' }])).toContain('Add the hat or cap in the reference image to the person')
-    expect(buildPrompt([{ slot: 'bag' }])).toContain('Add the bag in the reference image to the person')
+    expect(buildPrompt([{ slot: 'headwear' }])).toContain('Add the hat or cap in the reference image to the outfit')
+    expect(buildPrompt([{ slot: 'bag' }])).toContain('Add the bag in the reference image to the outfit')
   })
 
   it('substitutes for things that replace what is worn', () => {
-    expect(buildPrompt([{ slot: 'bottoms' }])).toContain('Substitute the current trousers or skirt')
+    expect(buildPrompt([{ slot: 'bottoms' }])).toContain('Substitute the lower body garment with')
+    expect(buildPrompt([{ slot: 'footwear' }])).toContain('Substitute the footwear with')
   })
 })
 
@@ -26,8 +35,8 @@ describe('several garments at once', () => {
     const prompt = buildPrompt([{ slot: 'top' }, { slot: 'headwear' }])
     expect(prompt).toContain('The reference image is a grid of 2 items.')
     // Head-down order: the cap is the left panel even though it was passed second.
-    expect(prompt).toContain('Add the hat or cap in the left panel to the person')
-    expect(prompt).toContain('substitute the current top with the top in the right panel')
+    expect(prompt).toContain('Add the hat or cap in the left panel to the outfit')
+    expect(prompt).toContain('substitute the upper body garment with the top in the right panel')
   })
 
   it('joins three or more clauses with commas and a final and', () => {
@@ -73,12 +82,18 @@ describe('the advanced override', () => {
   })
 
   it('is ignored when blank', () => {
-    expect(buildPrompt([{ slot: 'top' }], '   ')).toContain('Substitute the current top')
+    expect(buildPrompt([{ slot: 'top' }], '   ')).toContain('Substitute the upper body garment')
   })
 })
 
 describe('nothing selected', () => {
   it('falls back to the default sentence rather than an empty prompt', () => {
-    expect(buildPrompt([])).toContain('Substitute the current top with the outfit from the reference image')
+    expect(buildPrompt([])).toContain('Substitute the upper body garment with the garment in the reference image')
+  })
+
+  // The fallback used to be a second copy of this string, and the two had
+  // already drifted apart once.
+  it('is the same sentence the connection falls back to', () => {
+    expect(buildPrompt([])).toBe(DEFAULT_PROMPT)
   })
 })

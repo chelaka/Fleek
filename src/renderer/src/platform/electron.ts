@@ -29,6 +29,16 @@ export function createElectronPlatform(): FleekPlatform {
     addGarment: bridge.addGarment,
     removeGarment: bridge.removeGarment,
 
+    // Bytes cross the bridge as base64, which is all an IPC channel can
+    // carry, and become a Blob again here. They go straight to Decart on the
+    // next request and are written nowhere else.
+    async getImage(kind, id) {
+      const binary = atob(await bridge.readImage(kind, id))
+      const bytes = new Uint8Array(binary.length)
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+      return new Blob([bytes])
+    },
+
     listModelPhotos: bridge.listModelPhotos,
     addModelPhoto: bridge.addModelPhoto,
     removeModelPhoto: bridge.removeModelPhoto,

@@ -26,7 +26,6 @@ export function addGarment(input: GarmentInput): GarmentWithThumb {
     createdAt: Date.now(),
     imagePath,
     thumbPath,
-    remoteUrl: input.remoteUrl,
     width: input.width,
     height: input.height
   }))
@@ -34,6 +33,11 @@ export function addGarment(input: GarmentInput): GarmentWithThumb {
 
 export function removeGarment(id: string): void {
   garments.remove(id)
+}
+
+/** The full-resolution original, base64, for the model to be handed. */
+export function readGarmentImage(id: string): string {
+  return garments.readImage(id)
 }
 
 export function clearLibrary(): void {

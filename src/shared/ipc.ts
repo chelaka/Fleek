@@ -28,6 +28,13 @@ export interface IpcContract {
   'library:add': (input: GarmentInput) => Promise<GarmentWithThumb>
   'library:remove': (id: string) => Promise<void>
 
+  /**
+   * The full-resolution original, base64, for whichever image the model is
+   * about to be handed. Nothing is uploaded any more, so this is how the
+   * renderer gets the bytes it sends.
+   */
+  'image:read': (kind: 'garment' | 'photo', id: string) => Promise<string>
+
   /** Photos of the user, which only the still path needs. */
   'models:list': () => Promise<ModelPhotoWithThumb[]>
   'models:add': (input: ModelPhotoInput) => Promise<ModelPhotoWithThumb>

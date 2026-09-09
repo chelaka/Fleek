@@ -23,7 +23,6 @@ export function addModelPhoto(input: ModelPhotoInput): ModelPhotoWithThumb {
     createdAt: Date.now(),
     imagePath,
     thumbPath,
-    remoteUrl: input.remoteUrl,
     width: input.width,
     height: input.height
   }))
@@ -31,6 +30,11 @@ export function addModelPhoto(input: ModelPhotoInput): ModelPhotoWithThumb {
 
 export function removeModelPhoto(id: string): void {
   photos.remove(id)
+}
+
+/** The full-resolution original, base64, for the model to be handed. */
+export function readModelPhotoImage(id: string): string {
+  return photos.readImage(id)
 }
 
 export function clearModelPhotos(): void {

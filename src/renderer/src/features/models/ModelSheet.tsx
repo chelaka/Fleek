@@ -1,5 +1,4 @@
 import { useCallback, useState } from 'react'
-import { platform } from '@/platform'
 import { motion, useReducedMotion } from 'motion/react'
 import { Check, Person, X } from '@phosphor-icons/react'
 import { MAX_MODEL_PHOTOS, type ModelPhotoInput, type ModelPhotoWithThumb } from '@shared/types'
@@ -51,13 +50,7 @@ export function ModelSheet({
       }
       try {
         setBusy(true)
-        const apiKey = await platform.getApiKey()
-        if (!apiKey) {
-          toast.say('Fleek has no fal API key. Add one in Settings.', 'alarm')
-          return
-        }
-
-        const prepared = await prepareImage(apiKey, blob, name)
+        const prepared = await prepareImage(blob, name)
         await onAdd({ name: labelFromFilename(name, 'Photo'), ...prepared })
       } catch (error) {
         const message = error instanceof Error ? error.message : 'That photo would not go through.'
@@ -70,7 +63,13 @@ export function ModelSheet({
   )
 
   return (
-    <Sheet open={open} title="Photos of you" onClose={onClose} size="settings">
+    <Sheet
+      open={open}
+      title="Photos of you"
+      subtitle="A full-length photo against a plain wall generates best."
+      onClose={onClose}
+      size="settings"
+    >
       {photos.length > 0 ? (
         <div className="flex flex-col gap-2">
           <span className="text-12 font-medium uppercase tracking-wide text-glass-600">
@@ -149,9 +148,8 @@ export function ModelSheet({
 
       <p className="text-12 text-glass-600">
         {busy
-          ? 'Uploading to fal'
-          : 'A full-length photo against a plain wall generates best. Photos are kept on this ' +
-            'machine and uploaded to fal each time you generate.'}
+          ? 'Reading the photo'
+          : 'Photos are kept on this machine. They are sent to Decart only while a still is generating, and stored nowhere.'}
       </p>
     </Sheet>
   )

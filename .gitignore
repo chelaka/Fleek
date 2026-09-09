@@ -5,9 +5,12 @@ dist/
 # Fetched by `npm run fonts`, not committed.
 src/renderer/public/fonts/*.woff2
 
+# Vendored by `npm run models`, not committed. ~12MB of MediaPipe runtime.
+src/renderer/public/vision/
+
 *.log
 .DS_Store
 /dist-web
 
-# Local fal key for dev, read via FAL_KEY. Never committed.
+# Local Decart key for dev, read via DECART_API_KEY. Never committed.
 .env

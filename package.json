@@ -19,13 +19,16 @@
     "package": "npm run build && node scripts/make-icon.mjs && electron-builder --win --config electron-builder.yml",
     "fonts": "node scripts/fetch-fonts.mjs",
     "dev:web": "vite",
-    "build:web": "npm run fonts && npm run lint && npm run typecheck:web && npm run test && vite build",
-    "preview:web": "vite preview"
+    "build:web": "npm run assets && npm run lint && npm run typecheck:web && npm run test && vite build",
+    "preview:web": "vite preview",
+    "models": "node scripts/fetch-models.mjs",
+    "assets": "npm run fonts && npm run models"
   },
   "dependencies": {
+    "@decartai/sdk": "^0.1.22",
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^3.0.0",
-    "@fal-ai/client": "^1.2.0",
+    "@mediapipe/tasks-vision": "^1.0.1",
     "@phosphor-icons/react": "^2.1.7",
     "motion": "^11.15.0"
   },

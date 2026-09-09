@@ -2,10 +2,9 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'r
 import { platform } from '@/platform'
 import type { GarmentWithThumb } from '@shared/types'
 import { composeReference, needsComposite, referenceKey } from '@/features/garments/composite'
-import { FalSession } from './connect'
-import { describeFalError, logFalError } from './errors'
+import { DecartSession } from './decart'
+import { describeDecartError, logDecartError } from './errors'
 import { buildPrompt } from './prompt'
-import { uploadGarmentImage } from './upload'
 import {
   billedSeconds,
   capProgress,
@@ -21,9 +20,9 @@ import {
 } from './machine'
 
 /**
- * Drives the state machine from the outside world: the fal connection on one
- * side, React on the other. The machine decides what is true; this hook only
- * relays events into it and effects out of it.
+ * Drives the state machine from the outside world: the Decart connection on
+ * one side, React on the other. The machine decides what is true; this hook
+ * only relays events into it and effects out of it.
  */
 
 export interface SessionMeter {
@@ -58,23 +57,18 @@ export interface UseSessionOptions {
 }
 
 /**
- * fal takes one reference image. A single garment is sent as-is -- its own
- * upload is already the best reference there is -- and several are drawn onto
- * one sheet whose panels the prompt then names.
+ * Decart takes one reference image, as bytes. A single garment is sent as-is
+ * -- its own original is already the best reference there is -- and several
+ * are drawn onto one sheet whose panels the prompt then names.
+ *
+ * Nothing is uploaded ahead of time any more, so building a sheet is local
+ * work and costs a canvas draw rather than a round trip.
  */
-async function buildReference(
-  apiKey: string,
-  garments: readonly GarmentWithThumb[]
-): Promise<string> {
+async function buildReference(garments: readonly GarmentWithThumb[]): Promise<Blob> {
   const first = garments[0]
   if (!first) throw new Error('Pick a garment first.')
-  if (!needsComposite(garments.length)) return first.remoteUrl
-
-  const sheet = await composeReference(garments)
-  return await uploadGarmentImage(
-    apiKey,
-    new File([sheet], 'fleek-reference.jpg', { type: 'image/jpeg' })
-  )
+  if (!needsComposite(garments.length)) return await platform.getImage('garment', first.id)
+  return await composeReference(garments)
 }
 
 export function useSession(options: UseSessionOptions): UseSessionResult {
@@ -83,18 +77,18 @@ export function useSession(options: UseSessionOptions): UseSessionResult {
   const [wipeKey, setWipeKey] = useState(0)
   const [now, setNow] = useState(() => Date.now())
 
-  const falRef = useRef<FalSession | null>(null)
+  const sessionRef = useRef<DecartSession | null>(null)
   /** The reference sheet currently in the model's hands, so an unchanged set
-   *  of garments is never rebuilt or re-uploaded. */
-  const referenceRef = useRef<{ key: string; url: string } | null>(null)
+   *  of garments is never rebuilt. */
+  const referenceRef = useRef<{ key: string } | null>(null)
   // The reducer's own state, readable from callbacks and timers without
   // making every callback depend on the render cycle.
   const stateRef = useRef(state)
   stateRef.current = state
 
   const teardown = useCallback(() => {
-    falRef.current?.dispose()
-    falRef.current = null
+    sessionRef.current?.dispose()
+    sessionRef.current = null
     referenceRef.current = null
     setRemoteStream(null)
   }, [])
@@ -115,27 +109,30 @@ export function useSession(options: UseSessionOptions): UseSessionResult {
       if (!apiKey) {
         dispatch({
           type: 'FAIL',
-          reason: 'Fleek has no fal API key. Add one in Settings.',
+          reason: 'Fleek has no Decart API key. Add one in Settings.',
           at: Date.now()
         })
         return
       }
 
-      // Building the sheet happens before the socket opens, so a failure here
-      // costs nothing -- the meter only ever starts at the first frame.
-      let referenceImageUrl: string
+      // Building the sheet happens before the connection opens, so a failure
+      // here costs nothing -- the meter only ever starts at the first frame.
+      let reference: Blob
       try {
-        referenceImageUrl = await buildReference(apiKey, worn)
-        referenceRef.current = { key: referenceKey(worn), url: referenceImageUrl }
+        reference = await buildReference(worn)
+        referenceRef.current = { key: referenceKey(worn) }
       } catch (error) {
-        logFalError('reference sheet', error)
-        dispatch({ type: 'FAIL', reason: describeFalError(error, 'upload'), at: Date.now() })
+        logDecartError('reference sheet', error)
+        const message =
+          error instanceof Error ? error.message : describeDecartError(error, 'session')
+        dispatch({ type: 'FAIL', reason: message, at: Date.now() })
         return
       }
 
-      const fal = new FalSession({
+      const session = new DecartSession({
         apiKey,
-        referenceImageUrl,
+        capSeconds: options.capSeconds,
+        reference,
         prompt: buildPrompt(worn, options.promptOverride),
         localStream: options.localStream,
         onNegotiating: () => dispatch({ type: 'NEGOTIATING', at: Date.now() }),
@@ -151,15 +148,15 @@ export function useSession(options: UseSessionOptions): UseSessionResult {
         onDegraded: () => dispatch({ type: 'DEGRADED', at: Date.now() }),
         onRecovered: () => dispatch({ type: 'RECOVERED', at: Date.now() }),
         onFailure: (reason) => {
-          // FalSession has already closed the peer connection by this point.
-          falRef.current = null
+          // DecartSession has already closed the connection by this point.
+          sessionRef.current = null
           setRemoteStream(null)
           dispatch({ type: 'FAIL', reason, at: Date.now() })
         }
       })
 
-      falRef.current = fal
-      fal.start()
+      sessionRef.current = session
+      session.start()
     },
     [options.capSeconds, options.localStream, options.promptOverride]
   )
@@ -185,20 +182,17 @@ export function useSession(options: UseSessionOptions): UseSessionResult {
       dispatch({ type: 'SWAP_REQUESTED', garmentId: first.id, at: Date.now() })
       setWipeKey((k) => k + 1)
 
-      // Rebuilding the sheet is a round trip, but it is not billed and the
-      // peer connection stays open throughout -- this is a message, not a
-      // reconnect.
+      // Rebuilding the sheet is local work now, and the connection stays open
+      // throughout -- this is a message, not a reconnect.
       void (async () => {
         try {
-          const apiKey = await platform.getApiKey()
-          if (!apiKey) throw new Error('Fleek has no fal API key.')
-          const url = await buildReference(apiKey, worn)
-          referenceRef.current = { key, url }
-          falRef.current?.swap(url, buildPrompt(worn, options.promptOverride))
+          const reference = await buildReference(worn)
+          referenceRef.current = { key }
+          sessionRef.current?.swap(reference, buildPrompt(worn, options.promptOverride))
         } catch (error) {
           // A failed swap must not end a paid session: the model keeps
           // wearing what it already had, and the user is told.
-          logFalError('swap reference', error)
+          logDecartError('swap reference', error)
         } finally {
           // The model does not announce a swap, so the machine settles back to
           // `live` on the same timing as the wipe that covers it.
@@ -245,14 +239,14 @@ export function useSession(options: UseSessionOptions): UseSessionResult {
   // Nothing may outlive this component. Unmount, navigation, hot reload and
   // window close all land here, and all of them close the peer connection.
   useEffect(() => {
-    const onUnload = (): void => falRef.current?.dispose()
+    const onUnload = (): void => sessionRef.current?.dispose()
     window.addEventListener('beforeunload', onUnload)
     window.addEventListener('pagehide', onUnload)
     return () => {
       window.removeEventListener('beforeunload', onUnload)
       window.removeEventListener('pagehide', onUnload)
-      falRef.current?.dispose()
-      falRef.current = null
+      sessionRef.current?.dispose()
+      sessionRef.current = null
     }
   }, [])
 

@@ -1,9 +1,10 @@
+import { platform } from '@/platform'
 import type { GarmentWithThumb } from '@shared/types'
 import { decodeImage } from '@/lib/image'
 
 /**
- * fal accepts one reference image, so wearing several things at once means
- * drawing them onto a single sheet.
+ * Decart's realtime state holds one reference image, so wearing several
+ * things at once means drawing them onto a single sheet.
  *
  * The layout is two columns filled left to right, top to bottom, with an odd
  * final item spanning its row. `prompt.ts` names the panels from exactly the
@@ -70,16 +71,16 @@ export async function composeReference(garments: readonly GarmentWithThumb[]): P
 }
 
 /**
- * The full-resolution original lives on disk in the main process, so it is
- * fetched back through the remote URL fal already holds -- which is also the
- * exact image the model saw when the garment was used on its own.
+ * The full-resolution original, read back from wherever this platform keeps
+ * it -- disk under Electron, IndexedDB in a browser. Nothing is fetched over
+ * the network any more, which is what makes a sheet cheap to rebuild.
  */
 async function loadGarment(garment: GarmentWithThumb): Promise<Awaited<ReturnType<typeof decodeImage>>> {
-  const response = await fetch(garment.remoteUrl)
-  if (!response.ok) {
+  try {
+    return await decodeImage(await platform.getImage('garment', garment.id))
+  } catch {
     throw new Error('Could not load "' + garment.name + '" to build the reference sheet.')
   }
-  return await decodeImage(await response.blob())
 }
 
 /** Identifies a set of active garments, so an unchanged set is not re-uploaded. */

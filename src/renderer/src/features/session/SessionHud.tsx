@@ -21,7 +21,7 @@ export function SessionHud({ meter, capSeconds, shake }: SessionHudProps): JSX.E
 
   return (
     <motion.div
-      className="pointer-events-none absolute bottom-4 right-4 flex w-36 flex-col gap-2 rounded bg-glass-100 p-3 shadow-hud sm:bottom-6 sm:right-6 sm:w-40 sm:gap-3 sm:p-4"
+      className="panel pointer-events-none flex w-[144px] flex-col gap-2 rounded-panel p-3 sm:w-[160px] sm:gap-3 sm:p-4"
       initial="hidden"
       animate={shake && !reduced ? { x: [0, -4, 4, -4, 0], opacity: 1, y: 0 } : 'shown'}
       exit={{ opacity: 0 }}

@@ -128,6 +128,35 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
   }
+
+  .scroll-y {
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  /*
+   * Floating chrome. Everything that used to be a bar beside the mirror is
+   * now a panel on it, and this is the one surface they all share. The
+   * near-opaque fill is the fallback; where backdrop-filter exists the panel
+   * thins out and the mirror shows through it.
+   */
+  .panel {
+    background: var(--panel);
+    box-shadow: var(--shadow-panel);
+  }
+
+  @supports ((backdrop-filter: blur(4px)) or (-webkit-backdrop-filter: blur(4px))) {
+    .panel {
+      background: var(--panel-thin);
+      -webkit-backdrop-filter: blur(var(--blur)) saturate(1.6);
+      backdrop-filter: blur(var(--blur)) saturate(1.6);
+      box-shadow:
+        var(--shadow-panel),
+        inset 0 1px 0 var(--panel-line);
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

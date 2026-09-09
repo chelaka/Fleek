@@ -60,15 +60,41 @@
   --space-16: 64px;
   --space-24: 96px;
 
+  /* ---- Floating chrome ----------------------------------------------- */
+  /*
+   * The chrome does not sit beside the mirror any more, it floats on it. So
+   * every panel is light glass over dark glass: translucent and blurred where
+   * the browser supports it, and near-opaque where it does not, because a
+   * price and a status word have to stay readable over moving video.
+   */
+  --panel: rgba(251, 252, 251, 0.94);
+  --panel-thin: rgba(251, 252, 251, 0.72);
+  --panel-line: rgba(255, 255, 255, 0.64);
+
+  /* The mirror darkens at its edges so floating chrome always has ground. */
+  --stage-shade-top: linear-gradient(to bottom, rgba(14, 18, 17, 0.44), rgba(14, 18, 17, 0));
+  --stage-shade-bottom: linear-gradient(to top, rgba(14, 18, 17, 0.56), rgba(14, 18, 17, 0));
+
+  --blur: 24px;
+
   /* ---- Radius ------------------------------------------------------- */
-  --radius: 4px;
-  --radius-sheet: 8px;
+  /* Softer than v1 across the board: the frame, the panels and the garment
+     tiles all read as one family of rounded glass. */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius: 12px;
+  --radius-lg: 16px;
+  --radius-panel: 20px;
+  --radius-sheet: 24px;
   --radius-full: 999px;
 
   /* ---- Elevation ---------------------------------------------------- */
   /* Light interfaces need shadow where dark ones used a lighter fill. */
-  --shadow-sheet: 0 -4px 24px rgba(18, 23, 22, 0.08);
+  --shadow-sheet: 0 -8px 40px rgba(18, 23, 22, 0.16);
   --shadow-hud: 0 4px 16px rgba(18, 23, 22, 0.1);
+  --shadow-panel: 0 8px 32px rgba(18, 23, 22, 0.16);
+  --shadow-lift: 0 12px 28px rgba(18, 23, 22, 0.2);
+  --shadow-stage: 0 24px 64px rgba(18, 23, 22, 0.2);
 
   /* ---- Compositing -------------------------------------------------- */
   --wipe-band: linear-gradient(

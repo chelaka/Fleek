@@ -5,6 +5,10 @@ import {
   CAP_MAX_SECONDS,
   CAP_MIN_SECONDS,
   DEFAULT_SETTINGS,
+  DEFAULT_PRESENCE_MODE,
+  DEFAULT_STILL_MODE,
+  isPresenceMode,
+  isStillMode,
   type Settings
 } from '@shared/types'
 
@@ -31,7 +35,9 @@ function normalise(raw: Partial<Settings>): Settings {
     captureDir: typeof raw.captureDir === 'string' && raw.captureDir ? raw.captureDir : defaultCaptureDir(),
     promptOverride: typeof raw.promptOverride === 'string' ? raw.promptOverride : '',
     consentAcceptedAt: typeof raw.consentAcceptedAt === 'string' ? raw.consentAcceptedAt : '',
-    modelPhotoId: typeof raw.modelPhotoId === 'string' ? raw.modelPhotoId : ''
+    modelPhotoId: typeof raw.modelPhotoId === 'string' ? raw.modelPhotoId : '',
+    stillMode: isStillMode(raw.stillMode) ? raw.stillMode : DEFAULT_STILL_MODE,
+    presenceMode: isPresenceMode(raw.presenceMode) ? raw.presenceMode : DEFAULT_PRESENCE_MODE
   }
 }
 

@@ -67,7 +67,7 @@ export type SessionEvent =
   | { type: 'FAIL'; reason: string; at: number }
   | { type: 'CLOSED'; at: number }
 
-/** The states in which fal is charging us: `live` and its two branches. */
+/** The states in which Decart is charging us: `live` and its two branches. */
 const BILLING: ReadonlySet<SessionStatus> = new Set<SessionStatus>([
   'live',
   'swapping',

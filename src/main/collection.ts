@@ -36,6 +36,8 @@ export interface Collection<T extends DiskRecord> {
   add: (input: ImageInput, build: (paths: BuiltPaths) => T) => T & { thumbDataUrl: string }
   remove: (id: string) => void
   clear: () => void
+  /** The full-resolution original, base64. Throws a sentence if it is gone. */
+  readImage: (id: string) => string
 }
 
 export interface BuiltPaths {
@@ -128,6 +130,18 @@ export function createCollection<T extends DiskRecord>(
     clear() {
       rmSync(root(), { recursive: true, force: true })
       ensureDirs()
+    },
+
+    readImage(id) {
+      const entry = readIndex().find((item) => item.id === id)
+      // Desktop always kept the original on disk, even under the old build
+      // that also uploaded it -- so unlike the browser there is no legacy
+      // fallback to make here, and `list` already hides entries whose file
+      // has gone.
+      if (!entry?.imagePath || !existsSync(entry.imagePath)) {
+        throw new Error('The original for that image is missing from disk.')
+      }
+      return readFileSync(entry.imagePath).toString('base64')
     }
   }
 }

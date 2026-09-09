@@ -32,7 +32,7 @@ export interface FleekPlatform {
     revealCapture: boolean
     /** Deep-link to the OS camera privacy page. */
     osCameraSettings: boolean
-    /** Store the fal key outside the page's own storage. */
+    /** Store the Decart key outside the page's own storage. */
     secureKeyStorage: boolean
   }
 
@@ -55,6 +55,20 @@ export interface FleekPlatform {
   listGarments(): Promise<GarmentWithThumb[]>
   addGarment(input: GarmentInput): Promise<GarmentWithThumb>
   removeGarment(id: string): Promise<void>
+
+  /**
+   * The full-resolution original, as bytes.
+   *
+   * Fleek used to upload every garment and keep only the URL, because the old
+   * provider read its reference over HTTP. Decart takes the bytes inline, so
+   * there is nothing to upload and nothing of the user's wardrobe or likeness
+   * sitting on someone else's disk between sessions. The originals live here
+   * instead -- on disk under Electron, in IndexedDB in a browser -- and this
+   * is how the mirror, the composite sheet and the still path read them back.
+   *
+   * Throws a sentence if the original is gone.
+   */
+  getImage(kind: 'garment' | 'photo', id: string): Promise<Blob>
 
   /** Photos of the user. Only the still path has anyone to dress. */
   listModelPhotos(): Promise<ModelPhotoWithThumb[]>

@@ -3,7 +3,11 @@ import {
   CAP_MIN_SECONDS,
   DEFAULT_SETTINGS,
   DEFAULT_SLOT,
+  DEFAULT_PRESENCE_MODE,
+  DEFAULT_STILL_MODE,
+  isPresenceMode,
   isSlotId,
+  isStillMode,
   type AppState,
   type Garment,
   type GarmentInput,
@@ -19,7 +23,7 @@ import type { FleekPlatform } from './types'
 /**
  * The browser adapter.
  *
- * Bring-your-own-key: the fal key is the visitor's own and never leaves their
+ * Bring-your-own-key: the Decart key is the visitor's own and never leaves their
  * browser, so this build ships no server secret and there is nothing of the
  * operator's to spend. That honesty has a cost -- `localStorage` is readable
  * by any script on this origin -- and the Settings copy says so plainly
@@ -27,17 +31,44 @@ import type { FleekPlatform } from './types'
  */
 
 const KEY_SETTINGS = 'fleek:settings'
-const KEY_API = 'fleek:falKey'
+
+/**
+ * Deliberately not the old `fleek:falKey`.
+ *
+ * A key stored under that name is a fal key, and handing a fal key to Decart
+ * fails as "the key was not accepted" -- which is true but reads like the
+ * user typed it wrong. A new name means an old install is simply asked for a
+ * Decart key, which is the actual situation.
+ */
+const KEY_API = 'fleek:decartKey'
 
 /** Browsers choose where downloads land; Fleek only gets to name the file. */
 const CAPTURE_LOCATION = 'your downloads folder'
 
+/**
+ * The original is stored as a Blob rather than base64: IndexedDB clones it
+ * structurally, so a 2MB photograph costs 2MB instead of the 2.7MB the same
+ * bytes would take as a base64 string.
+ */
 interface StoredGarment extends Garment {
   thumbDataUrl: string
+  image?: Blob
 }
 
 interface StoredPhoto extends ModelPhoto {
   thumbDataUrl: string
+  image?: Blob
+}
+
+const MIME: Record<string, string> = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp'
+}
+
+function mimeFor(ext: string): string {
+  return MIME[ext.toLowerCase()] ?? 'image/png'
 }
 
 function readSettings(): Settings {
@@ -59,13 +90,28 @@ function readSettings(): Settings {
     captureDir: CAPTURE_LOCATION,
     promptOverride: typeof raw.promptOverride === 'string' ? raw.promptOverride : '',
     consentAcceptedAt: typeof raw.consentAcceptedAt === 'string' ? raw.consentAcceptedAt : '',
-    modelPhotoId: typeof raw.modelPhotoId === 'string' ? raw.modelPhotoId : ''
+    modelPhotoId: typeof raw.modelPhotoId === 'string' ? raw.modelPhotoId : '',
+    stillMode: isStillMode(raw.stillMode) ? raw.stillMode : DEFAULT_STILL_MODE,
+    presenceMode: isPresenceMode(raw.presenceMode) ? raw.presenceMode : DEFAULT_PRESENCE_MODE
   }
 }
 
 function writeSettings(settings: Settings): Settings {
   localStorage.setItem(KEY_SETTINGS, JSON.stringify(settings))
   return settings
+}
+
+/**
+ * The stored record minus its original.
+ *
+ * A list of garments is rendered from thumbnails, and handing React a dozen
+ * multi-megabyte Blobs it will never read is the kind of thing that only
+ * shows up on someone else's machine. `getImage` fetches the one that is
+ * actually needed, when it is needed.
+ */
+function stripImage<T extends { image?: Blob }>(entry: T): Omit<T, 'image'> {
+  const { image: _image, ...rest } = entry
+  return rest
 }
 
 function base64ToBlob(base64: string, type: string): Blob {
@@ -129,6 +175,7 @@ export function createWebPlatform(): FleekPlatform {
       return all
         .map((g) => (isSlotId(g.slot) ? g : { ...g, slot: DEFAULT_SLOT }))
         .sort((a, b) => b.createdAt - a.createdAt)
+        .map(stripImage)
     },
 
     async addGarment(input: GarmentInput): Promise<GarmentWithThumb> {
@@ -137,15 +184,15 @@ export function createWebPlatform(): FleekPlatform {
         name: input.name.trim() || 'Garment',
         slot: isSlotId(input.slot) ? input.slot : DEFAULT_SLOT,
         createdAt: Date.now(),
-        remoteUrl: input.remoteUrl,
         width: input.width,
         height: input.height,
-        thumbDataUrl: 'data:image/png;base64,' + input.thumbBase64
+        thumbDataUrl: 'data:image/png;base64,' + input.thumbBase64,
+        // The original stays here. It is the copy every model reads, and it
+        // never leaves this browser except as bytes on a request.
+        image: base64ToBlob(input.imageBase64, mimeFor(input.imageExt))
       }
-      // The original is not kept: fal already holds it at `remoteUrl`, which
-      // is the copy the model actually reads and the composite fetches back.
       await idbPut(GARMENTS, garment)
-      return garment
+      return stripImage(garment)
     },
 
     async removeGarment(id: string): Promise<void> {
@@ -154,7 +201,28 @@ export function createWebPlatform(): FleekPlatform {
 
     async listModelPhotos(): Promise<ModelPhotoWithThumb[]> {
       const all = await idbGetAll<StoredPhoto>(MODELS)
-      return all.sort((a, b) => b.createdAt - a.createdAt)
+      return all.sort((a, b) => b.createdAt - a.createdAt).map(stripImage)
+    },
+
+    async getImage(kind: 'garment' | 'photo', id: string): Promise<Blob> {
+      const store = kind === 'garment' ? GARMENTS : MODELS
+      const all = await idbGetAll<StoredGarment | StoredPhoto>(store)
+      const entry = all.find((item) => item.id === id)
+      if (!entry) throw new Error('That image is no longer in the library.')
+      if (entry.image) return entry.image
+
+      // Added under the old fal build, which kept only the upload and wrote
+      // it as `remoteUrl`. Those URLs are still public, so a library someone
+      // already built keeps working instead of going blank on them.
+      const legacy =
+        entry.legacyUrl ?? (entry as { remoteUrl?: string }).remoteUrl
+      if (legacy) {
+        const response = await fetch(legacy)
+        if (response.ok) return await response.blob()
+      }
+      throw new Error(
+        'The original for "' + entry.name + '" is missing. Remove it and add the image again.'
+      )
     },
 
     async addModelPhoto(input: ModelPhotoInput): Promise<ModelPhotoWithThumb> {
@@ -162,15 +230,15 @@ export function createWebPlatform(): FleekPlatform {
         id: crypto.randomUUID(),
         name: input.name.trim() || 'Photo',
         createdAt: Date.now(),
-        remoteUrl: input.remoteUrl,
         width: input.width,
         height: input.height,
-        thumbDataUrl: 'data:image/png;base64,' + input.thumbBase64
+        thumbDataUrl: 'data:image/png;base64,' + input.thumbBase64,
+        // A likeness especially: it is uploaded per generation and stored
+        // nowhere but here.
+        image: base64ToBlob(input.imageBase64, mimeFor(input.imageExt))
       }
-      // As with garments, the original is not kept here: fal already holds it
-      // at `remoteUrl`, which is the copy the model reads.
       await idbPut(MODELS, photo)
-      return photo
+      return stripImage(photo)
     },
 
     async removeModelPhoto(id: string): Promise<void> {

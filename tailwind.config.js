@@ -19,9 +19,13 @@ export default {
     },
     borderRadius: {
       none: '0',
-      DEFAULT: '4px',
-      sheet: '8px',
-      full: '999px'
+      xs: 'var(--radius-xs)',
+      sm: 'var(--radius-sm)',
+      DEFAULT: 'var(--radius)',
+      lg: 'var(--radius-lg)',
+      panel: 'var(--radius-panel)',
+      sheet: 'var(--radius-sheet)',
+      full: 'var(--radius-full)'
     },
     fontSize: {
       12: ['12px', '16px'],
@@ -66,8 +70,14 @@ export default {
     fontWeight: { light: '300', normal: '400', medium: '500' },
     extend: {
       transitionTimingFunction: { wipe: 'cubic-bezier(0.22, 1, 0.36, 1)' },
-      boxShadow: { sheet: 'var(--shadow-sheet)', hud: 'var(--shadow-hud)' },
-      width: { tray: '64px' },
+      boxShadow: {
+        sheet: 'var(--shadow-sheet)',
+        hud: 'var(--shadow-hud)',
+        panel: 'var(--shadow-panel)',
+        lift: 'var(--shadow-lift)',
+        stage: 'var(--shadow-stage)'
+      },
+      width: { tray: '64px', rail: '288px' },
       height: { bar: '56px', tray: '96px', sheet: '320px' }
     }
   },

@@ -1,7 +1,7 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { platform } from '@/platform'
-import type { GarmentWithThumb, ModelPhotoWithThumb } from '@shared/types'
-import { generateStill, planStill, type StillPlan } from './fashn'
+import type { GarmentWithThumb, ModelPhotoWithThumb, StillMode } from '@shared/types'
+import { generateStill, planStill, type StillPlan } from './still'
 
 /**
  * The still path's state, deliberately much smaller than the live session's.
@@ -25,7 +25,11 @@ export interface UseGenerationResult {
   status: GenerationStatus
   /** Set while working, so the UI can count garments rather than spin. */
   progress: GenerationProgress | null
-  /** The finished image, kept until the next run or an explicit discard. */
+  /**
+   * The finished image as an object URL, kept until the next run or an
+   * explicit discard. The bytes never leave this machine: `process` returns
+   * them directly, so there is no hosted result to expire or leak.
+   */
   imageUrl: string | null
   /** What the last finished or failed run actually cost. */
   spent: number
@@ -34,13 +38,32 @@ export interface UseGenerationResult {
   discard: () => void
 }
 
-export function useGeneration(): UseGenerationResult {
+export interface UseGenerationOptions {
+  /** From settings. Read at the moment Generate is pressed, not before. */
+  mode: StillMode
+}
+
+export function useGeneration(options: UseGenerationOptions): UseGenerationResult {
   const [status, setStatus] = useState<GenerationStatus>('idle')
   const [progress, setProgress] = useState<GenerationProgress | null>(null)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [spent, setSpent] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const busy = useRef(false)
+
+  /**
+   * Object URLs are a manual allocation. Every one handed out here is revoked
+   * when it is replaced and when this hook goes away, or a browsing session
+   * leaks a full-resolution image per garment tried.
+   */
+  const urlRef = useRef<string | null>(null)
+  const showImage = useCallback((blob: Blob | null): void => {
+    if (urlRef.current) URL.revokeObjectURL(urlRef.current)
+    urlRef.current = blob ? URL.createObjectURL(blob) : null
+    setImageUrl(urlRef.current)
+  }, [])
+
+  useEffect(() => () => showImage(null), [showImage])
 
   const generate = useCallback(
     async (photo: ModelPhotoWithThumb, garments: readonly GarmentWithThumb[]): Promise<void> => {
@@ -49,7 +72,7 @@ export function useGeneration(): UseGenerationResult {
       const plan: StillPlan = planStill(garments)
       if (plan.steps.length === 0) {
         setStatus('failed')
-        setError('There is nothing here a still can wear. Use the mirror instead.')
+        setError('Pick a garment first.')
         return
       }
 
@@ -65,12 +88,13 @@ export function useGeneration(): UseGenerationResult {
 
       try {
         const apiKey = await platform.getApiKey()
-        if (!apiKey) throw new Error('Fleek has no fal API key. Add one in Settings.')
+        if (!apiKey) throw new Error('Fleek has no Decart API key. Add one in Settings.')
 
-        const url = await generateStill({
+        const image = await generateStill({
           apiKey,
           photo,
           plan,
+          mode: options.mode,
           onStep: (index, total) => setProgress({ step: index + 1, total }),
           onBilled: (cost) => {
             billed += cost
@@ -79,7 +103,7 @@ export function useGeneration(): UseGenerationResult {
           }
         })
 
-        setImageUrl(url)
+        showImage(image)
         setStatus('done')
       } catch (caught) {
         const message =
@@ -92,14 +116,14 @@ export function useGeneration(): UseGenerationResult {
         busy.current = false
       }
     },
-    []
+    [options.mode, showImage]
   )
 
   const discard = useCallback(() => {
-    setImageUrl(null)
+    showImage(null)
     setStatus('idle')
     setError(null)
-  }, [])
+  }, [showImage])
 
   return { status, progress, imageUrl, spent, error, generate, discard }
 }

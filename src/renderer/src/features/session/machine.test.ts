@@ -119,7 +119,7 @@ describe('failure', () => {
     const live = goLive()
     const failed = sessionReducer(live, {
       type: 'FAIL',
-      reason: 'Lost the connection to fal. Your session stopped and stopped billing.',
+      reason: 'Lost the connection to Decart. Your session stopped and stopped billing.',
       at: T0 + 12_000
     })
     expect(failed.status).toBe('failed')

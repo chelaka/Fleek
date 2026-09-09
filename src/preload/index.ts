@@ -25,6 +25,7 @@ const api = {
   listGarments: invoke('library:list'),
   addGarment: invoke('library:add'),
   removeGarment: invoke('library:remove'),
+  readImage: invoke('image:read'),
 
   listModelPhotos: invoke('models:list'),
   addModelPhoto: invoke('models:add'),

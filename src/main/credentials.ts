@@ -3,20 +3,20 @@ import { readFileSync, writeFileSync, existsSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 
 /**
- * The user brings their own fal key. It is encrypted at rest with the OS
+ * The user brings their own Decart key. It is encrypted at rest with the OS
  * credential store via safeStorage and only ever decrypted in main.
  *
  * This is not a secret from its owner — anyone at this Windows login can read
  * it back through the app. That tradeoff is documented in Settings.
  *
- * For now, a `FAL_KEY` environment variable is also accepted as a fallback
+ * For now, a `DECART_API_KEY` environment variable is also accepted as a fallback
  * when nothing is stored, so dev runs don't need to go through Settings.
  */
 
 const file = (): string => join(app.getPath('userData'), 'credentials.bin')
 
 export function hasApiKey(): boolean {
-  return existsSync(file()) || Boolean(process.env['FAL_KEY']?.trim())
+  return existsSync(file()) || Boolean(process.env['DECART_API_KEY']?.trim())
 }
 
 export function setApiKey(key: string): void {
@@ -32,7 +32,7 @@ export function setApiKey(key: string): void {
 }
 
 export function getApiKey(): string | null {
-  if (!hasApiKey()) return process.env['FAL_KEY']?.trim() || null
+  if (!hasApiKey()) return process.env['DECART_API_KEY']?.trim() || null
   try {
     return safeStorage.decryptString(readFileSync(file()))
   } catch {

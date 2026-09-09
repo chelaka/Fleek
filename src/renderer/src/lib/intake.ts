@@ -1,12 +1,14 @@
-import { uploadGarmentImage } from '@/features/session/upload'
 import { blobToBase64, decodeImage, extensionFor, thumbnailBase64 } from './image'
 
 /**
  * The one path every dropped, pasted, browsed or shot image funnels through,
- * whether it is a garment or a photo of the user: decode, thumbnail, upload
- * to fal, and hand back everything a library entry needs.
+ * whether it is a garment or a photo of the user: decode, thumbnail, and hand
+ * back everything a library entry needs.
  *
- * The upload is not billed. Only generation is.
+ * This used to end with an upload. It does not any more -- Decart takes image
+ * bytes inline on the request that uses them -- so adding a garment is now
+ * entirely local, works offline, needs no key, and leaves nothing of the
+ * user's wardrobe or likeness on a server between sessions.
  */
 
 export interface PreparedImage {
@@ -14,27 +16,17 @@ export interface PreparedImage {
   imageBase64: string
   imageExt: string
   thumbBase64: string
-  remoteUrl: string
   width: number
   height: number
 }
 
-export async function prepareImage(
-  apiKey: string,
-  blob: Blob,
-  name: string
-): Promise<PreparedImage> {
+export async function prepareImage(blob: Blob, name: string): Promise<PreparedImage> {
   const image = await decodeImage(blob)
-  const thumbBase64 = thumbnailBase64(image)
-
-  const file = new File([blob], name, { type: blob.type || 'image/png' })
-  const remoteUrl = await uploadGarmentImage(apiKey, file)
 
   return {
     imageBase64: await blobToBase64(blob),
     imageExt: extensionFor(blob, name),
-    thumbBase64,
-    remoteUrl,
+    thumbBase64: thumbnailBase64(image),
     width: image.width,
     height: image.height
   }

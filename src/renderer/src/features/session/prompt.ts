@@ -1,12 +1,19 @@
 import { slotDef, slotOrder, type SlotId } from '@shared/slots'
+import { DEFAULT_PROMPT } from '@shared/types'
 
 /**
- * fal takes exactly one `reference_image_url`, so wearing several things at
- * once means compositing them into a single sheet and telling the model which
- * panel is which. This file builds that sentence.
+ * Decart's realtime state holds exactly one reference image, so wearing
+ * several things at once means compositing them into a single sheet and
+ * telling the model which panel is which. This file builds that sentence.
  *
  * The panel names have to match the layout `composite.ts` draws, so both read
  * their geometry from `panelName()` below.
+ *
+ * The phrasing follows the VTON 3.5 prompting guide, which is specific about
+ * two things: lead with the action, and name the region the way the model
+ * names it. "Substitute the upper body garment with ..." is not a stylistic
+ * preference over "substitute the top with ..." -- it is the form the model
+ * was tuned on, and the slot table carries the exact wording per region.
  */
 
 export interface PromptEntry {
@@ -43,11 +50,15 @@ function ordinalRow(row: number): string {
 
 function clauseFor(slot: SlotId, panel: string): string {
   const def = slotDef(slot)
-  const source = panel ? 'the ' + def.noun + ' in the ' + panel + ' panel' : 'the ' + def.noun + ' in the reference image'
+  const source = panel
+    ? 'the ' + def.noun + ' in the ' + panel + ' panel'
+    : 'the ' + def.noun + ' in the reference image'
 
+  // `region` is the guide's own name for the area -- "the upper body garment",
+  // "the footwear" -- and `mode` decides which verb it takes.
   return def.mode === 'replace'
-    ? 'substitute the current ' + def.noun + ' with ' + source
-    : 'add ' + source + ' to the person'
+    ? 'substitute ' + def.region + ' with ' + source
+    : 'add ' + source + ' to the outfit'
 }
 
 function joinClauses(clauses: string[]): string {
@@ -62,6 +73,19 @@ export function orderEntries<T extends PromptEntry>(entries: readonly T[]): T[] 
 }
 
 /**
+ * What must not change.
+ *
+ * "Keep everything else unchanged" is too vague to hold a video model to:
+ * drift shows up in the face first, then the hands, then the background. It
+ * costs nothing to name them, and naming the background and the lighting
+ * matters most -- neither is part of "the person", so an instruction phrased
+ * around the person never covered them at all.
+ */
+const PRESERVE =
+  "Keep the person's face, hair, skin tone, hands, body, and pose unchanged, and keep the background " +
+  'and the direction of the light exactly as they are.'
+
+/**
  * Builds the instruction sent with the reference sheet.
  *
  * @param override a user's advanced prompt, which wins outright.
@@ -71,9 +95,9 @@ export function buildPrompt(entries: readonly PromptEntry[], override = ''): str
   if (custom) return custom
 
   const ordered = orderEntries(entries)
-  if (ordered.length === 0) {
-    return 'Substitute the current top with the outfit from the reference image, matching its color, material, and fit.'
-  }
+  // Nothing picked is the same situation `connect.ts` falls back to, so it
+  // uses the same sentence rather than a second copy that drifts from it.
+  if (ordered.length === 0) return DEFAULT_PROMPT
 
   const clauses = ordered.map((entry, index) => clauseFor(entry.slot, panelName(index, ordered.length)))
   const body = joinClauses(clauses)
@@ -90,8 +114,8 @@ export function buildPrompt(entries: readonly PromptEntry[], override = ''): str
 
   return (
     sentence +
-    ', matching color, material, and fit. The reference may show the item alone, laid flat, on a hanger, ' +
+    ', matching color, pattern, material, and fit. The reference may show the item alone, laid flat, on a hanger, ' +
     'or worn by someone else -- read its color, material, cut, and construction from whatever is shown. ' +
-    'Keep everything else about the person unchanged.'
+    PRESERVE
   )
 }
