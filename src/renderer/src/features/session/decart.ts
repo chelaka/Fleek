@@ -45,6 +45,7 @@ export class DecartSession {
   /** Set the moment teardown begins, so late events are ignored. */
   private disposed = false
   private generating = false
+  private lastStatsAt = 0
 
   constructor(private readonly options: DecartSessionOptions) {
     this.prompt = options.prompt?.trim() || DEFAULT_PROMPT
@@ -92,6 +93,36 @@ export class DecartSession {
 
       this.client = client
       client.on('error', (error: DecartSDKError) => this.fail(this.sentence(error, 'realtime')))
+      client.on('stats', (stats) => {
+        if (this.disposed || stats.timestamp - this.lastStatsAt < 5000) return
+        this.lastStatsAt = stats.timestamp
+        // Local diagnostics only. Do not log raw SDK stats: ICE candidates
+        // contain IP addresses. These timings distinguish network, buffering
+        // and device bottlenecks without recording camera content or tokens.
+        console.info('[Fleek playback] ' + JSON.stringify({
+          latency: stats.glassToGlass,
+          rttMs: stats.connection.currentRoundTripTime === null
+            ? null : stats.connection.currentRoundTripTime * 1000,
+          availableUpstreamKbps: stats.connection.availableOutgoingBitrate === null
+            ? null : stats.connection.availableOutgoingBitrate / 1000,
+          outboundFps: stats.outboundVideo?.framesPerSecond,
+          inboundFps: stats.video?.framesPerSecond,
+          encoderLimit: stats.outboundVideo?.qualityLimitationReason,
+          encodeMs: stats.outboundVideo?.avgEncodeTimeMs,
+          sendDelayMs: stats.outboundVideo?.avgPacketSendDelayMs,
+          decodeMs: stats.video?.avgDecodeTimeMs,
+          jitterBufferMs: stats.video?.avgJitterBufferMs,
+          processingMs: stats.video?.avgProcessingDelayMs,
+          upstreamLoss: stats.remoteInbound?.fractionLost,
+          downstreamPacketsLost: stats.video?.packetsLostDelta,
+          framesDropped: stats.video?.framesDroppedDelta,
+          freezes: stats.video?.freezeCountDelta,
+          transport: stats.connection.selectedCandidatePairs.map(({ local, remote }) => ({
+            local: local.candidateType, remote: remote.candidateType,
+            protocol: local.protocol
+          }))
+        }))
+      })
     } catch (error) {
       this.fail(this.sentence(error, 'realtime.connect'))
     }

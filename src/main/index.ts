@@ -79,7 +79,7 @@ function createWindow(): void {
   // packaged app has no console to watch, and "it just failed" is not a bug
   // report anyone can act on.
   mainWindow.webContents.on('console-message', (_e, level, message, line, sourceId) => {
-    if (level < 2) return
+    if (level < 2 && !message.startsWith('[Fleek playback] ')) return
     const source = sourceId ? ' (' + sourceId.split('/').pop() + ':' + line + ')' : ''
     try {
       appendFileSync(

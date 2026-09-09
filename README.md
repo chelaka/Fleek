@@ -214,6 +214,8 @@ This is not a secret from its owner: anyone signed in to this Windows account ca
 
 ## Troubleshooting
 
+**Mirror never gets past connecting, with a frame-metadata worker error in the log.** The Decart SDK loads a worker relative to its own module. Both Vite configurations exclude the SDK from dependency prebundling so that URL stays valid, while still prebundling its retry and LiveKit dependencies. Restart the development server after changing these settings. Production builds emit the worker as a separate asset.
+
 **"Windows isn't giving Fleek access to a camera."** Settings → Privacy & security → Camera, and allow desktop apps. There's a button in the app that opens that page.
 
 **"Another app is using the camera."** Teams, Zoom, and OBS hold the device exclusively on some drivers. Close them.

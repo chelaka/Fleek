@@ -16,6 +16,12 @@ export default defineConfig({
   root: 'src/renderer',
   base: '/',
   plugins: [react()],
+  // The SDK resolves its frame-metadata worker relative to import.meta.url.
+  // Prebundling moves that URL into .vite/deps without copying the worker.
+  optimizeDeps: {
+    exclude: ['@decartai/sdk'],
+    include: ['@decartai/sdk > p-retry', '@decartai/sdk > livekit-client']
+  },
   resolve: {
     alias: {
       '@': resolve('src/renderer/src'),

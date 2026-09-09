@@ -17,6 +17,11 @@ export default defineConfig({
   },
   renderer: {
     root: 'src/renderer',
+    // Keep the SDK's relative frame-metadata worker URL beside its source.
+    optimizeDeps: {
+      exclude: ['@decartai/sdk'],
+      include: ['@decartai/sdk > p-retry', '@decartai/sdk > livekit-client']
+    },
     resolve: { alias: { '@': resolve('src/renderer/src'), ...shared } },
     build: { rollupOptions: { input: { index: resolve('src/renderer/index.html') } } },
     plugins: [react()]
